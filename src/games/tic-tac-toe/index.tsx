@@ -79,7 +79,10 @@ export default function TicTacToe() {
       }
     >
       <div className="flex w-full max-w-sm flex-col items-center gap-5">
-        <p className="text-sm font-medium" aria-live="polite">
+        <p
+          className="text-sm font-medium select-none outline-none"
+          aria-live="polite"
+        >
           {status}
         </p>
         <div className="grid grid-cols-3 gap-2" aria-label="Board">
@@ -96,7 +99,7 @@ export default function TicTacToe() {
                     ? `${cell}, cell ${index + 1}`
                     : `Empty cell ${index + 1}`
                 }
-                className={`flex size-24 items-center justify-center rounded-xl border bg-card text-3xl font-semibold shadow-sm transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-default sm:size-28 ${
+                className={`flex size-24 items-center justify-center rounded-xl border bg-card text-3xl font-semibold shadow-sm transition-colors outline-none select-none hover:border-primary/40 focus-visible:ring-3 focus-visible:ring-ring/50 aria-disabled:pointer-events-none sm:size-28 ${
                   winning
                     ? "border-primary bg-primary/15 text-primary"
                     : "border-border"

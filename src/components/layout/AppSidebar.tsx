@@ -34,10 +34,10 @@ export function AppSidebar() {
               tooltip="Arcade"
             >
               <TransitionNavLink to="/" end>
-                <div className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <Gamepad2 aria-hidden="true" />
                 </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                   <span className="truncate font-semibold">Arcade</span>
                   <span className="truncate text-xs text-muted-foreground">
                     Pick a game
