@@ -8,7 +8,11 @@ export type GameDefinition = {
   icon: LucideIcon
   tags: string[]
   component: LazyExoticComponent<ComponentType>
+  preload: () => Promise<unknown>
 }
+
+const loadTicTacToe = () => import("@/games/tic-tac-toe")
+const loadMemory = () => import("@/games/memory")
 
 export const games: GameDefinition[] = [
   {
@@ -17,7 +21,8 @@ export const games: GameDefinition[] = [
     description: "Take turns on a 3×3 grid. Line up three marks to win.",
     icon: Grid3x3,
     tags: ["Two player", "Quick"],
-    component: lazy(() => import("@/games/tic-tac-toe")),
+    component: lazy(loadTicTacToe),
+    preload: loadTicTacToe,
   },
   {
     slug: "memory",
@@ -25,7 +30,8 @@ export const games: GameDefinition[] = [
     description: "Flip cards and find every matching pair.",
     icon: Brain,
     tags: ["Solo", "Puzzle"],
-    component: lazy(() => import("@/games/memory")),
+    component: lazy(loadMemory),
+    preload: loadMemory,
   },
 ]
 

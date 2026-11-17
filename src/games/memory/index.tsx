@@ -32,10 +32,14 @@ function createDeck(): Card[] {
   return shuffle(pairs)
 }
 
+const clock = new Intl.DateTimeFormat(undefined, {
+  minute: "2-digit",
+  second: "2-digit",
+  timeZone: "UTC",
+})
+
 function formatTime(seconds: number) {
-  const minutes = Math.floor(seconds / 60)
-  const rest = seconds % 60
-  return `${minutes}:${rest.toString().padStart(2, "0")}`
+  return clock.format(new Date(seconds * 1000))
 }
 
 export default function MemoryMatch() {
@@ -124,9 +128,6 @@ export default function MemoryMatch() {
 
   return (
     <GameShell
-      title="Memory Match"
-      description="Turn over two cards at a time and remember where each pair hides."
-      tags={["Solo", "Puzzle"]}
       toolbar={
         <>
           <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium tabular-nums">
@@ -159,7 +160,7 @@ export default function MemoryMatch() {
                       ? `Showing ${card.symbol}`
                       : "Hidden card"
                 }
-                className="perspective-midrange size-16 rounded-xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-default sm:size-20"
+                className="perspective-midrange size-16 rounded-xl transition-transform focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-default sm:size-20"
               >
                 <span
                   className={`relative grid size-full transform-3d transition-transform duration-500 ${

@@ -1,5 +1,5 @@
 import type { SVGProps } from "react"
-import { NavLink, useLocation } from "react-router"
+import { useLocation } from "react-router"
 import { Gamepad2 } from "lucide-react"
 
 import { version } from "../../../package.json"
@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { TransitionNavLink } from "@/components/page-transition"
 
 export function AppSidebar() {
   const { pathname } = useLocation()
@@ -32,9 +33,9 @@ export function AppSidebar() {
               isActive={pathname === "/"}
               tooltip="Arcade"
             >
-              <NavLink to="/" end>
+              <TransitionNavLink to="/" end>
                 <div className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Gamepad2 />
+                  <Gamepad2 aria-hidden="true" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Arcade</span>
@@ -42,7 +43,7 @@ export function AppSidebar() {
                     Pick a game
                   </span>
                 </div>
-              </NavLink>
+              </TransitionNavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -59,10 +60,13 @@ export function AppSidebar() {
                     isActive={pathname === `/games/${game.slug}`}
                     tooltip={game.name}
                   >
-                    <NavLink to={`/games/${game.slug}`}>
-                      <game.icon />
+                    <TransitionNavLink
+                      to={`/games/${game.slug}`}
+                      preload={game.preload}
+                    >
+                      <game.icon aria-hidden="true" />
                       <span>{game.name}</span>
-                    </NavLink>
+                    </TransitionNavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -77,7 +81,7 @@ export function AppSidebar() {
               <a
                 href="https://github.com/mverdaguer/react-games"
                 target="_blank"
-                rel="noreferrer"
+                rel="noreferrer noopener"
               >
                 <GithubMark />
                 <span>v{version}</span>

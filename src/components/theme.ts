@@ -1,4 +1,6 @@
-import { createContext, useContext } from "react"
+import { createContext, use } from "react"
+
+export const themeStorageKey = "arcade-theme:v1"
 
 export type Theme = "dark" | "light" | "system"
 
@@ -10,7 +12,7 @@ export type ThemeState = {
 export const ThemeContext = createContext<ThemeState | undefined>(undefined)
 
 export function useTheme() {
-  const context = useContext(ThemeContext)
+  const context = use(ThemeContext)
   if (!context) {
     throw new Error("useTheme must be used within a ThemeProvider")
   }

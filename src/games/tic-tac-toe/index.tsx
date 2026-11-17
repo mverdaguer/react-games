@@ -66,9 +66,6 @@ export default function TicTacToe() {
 
   return (
     <GameShell
-      title="Tic-Tac-Toe"
-      description="Two players, one device. Line up three of your marks."
-      tags={["Two player", "Quick"]}
       toolbar={
         <>
           <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium tabular-nums">
@@ -99,7 +96,7 @@ export default function TicTacToe() {
                     ? `${cell}, cell ${index + 1}`
                     : `Empty cell ${index + 1}`
                 }
-                className={`flex size-24 items-center justify-center rounded-xl border bg-card text-3xl font-semibold shadow-sm transition hover:border-primary/40 disabled:cursor-default sm:size-28 ${
+                className={`flex size-24 items-center justify-center rounded-xl border bg-card text-3xl font-semibold shadow-sm transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-default sm:size-28 ${
                   winning
                     ? "border-primary bg-primary/15 text-primary"
                     : "border-border"

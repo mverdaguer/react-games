@@ -17,8 +17,14 @@ export function AppLayout() {
 
   return (
     <SidebarProvider>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-lg focus:bg-background focus:px-3 focus:py-2 focus:ring-3 focus:ring-ring"
+      >
+        Skip to main content
+      </a>
       <AppSidebar />
-      <SidebarInset className="arcade-canvas">
+      <SidebarInset id="main" className="arcade-canvas scroll-pt-16">
         <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-b bg-background/80 px-4 backdrop-blur-md">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-1 h-4" />

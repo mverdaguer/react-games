@@ -4,16 +4,33 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
     <title>Arcade</title>
     <script>
       ;(function () {
         try {
-          var theme = localStorage.getItem("arcade-theme") || "system"
+          var key = "arcade-theme:v1"
+          var theme = localStorage.getItem(key)
+          if (theme !== "light" && theme !== "dark" && theme !== "system") {
+            var legacy = localStorage.getItem("arcade-theme")
+            theme =
+              legacy === "light" || legacy === "dark" || legacy === "system"
+                ? legacy
+                : "system"
+            if (legacy === theme) {
+              localStorage.setItem(key, theme)
+              localStorage.removeItem("arcade-theme")
+            }
+          }
           var dark =
             theme === "dark" ||
             (theme === "system" &&
               window.matchMedia("(prefers-color-scheme: dark)").matches)
-          document.documentElement.classList.add(dark ? "dark" : "light")
+          var root = document.documentElement
+          root.classList.add(dark ? "dark" : "light")
+          root.style.colorScheme = dark ? "dark" : "light"
+          var meta = document.querySelector('meta[name="theme-color"]')
+          if (meta) meta.setAttribute("content", dark ? "#252525" : "#ffffff")
         } catch (e) {}
       })()
     </script>
