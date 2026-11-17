@@ -1,0 +1,20 @@
+---
+description: Finish code changes with no linter errors or warnings
+alwaysApply: true
+---
+
+# Finish without lint warnings
+
+A change is done only when `pnpm lint` and the TypeScript build report nothing, including warnings.
+
+Oxlint does not see Tailwind `suggestCanonicalClasses` warnings. Before finishing a UI or class-name change, rewrite any class Tailwind can express with a built-in utility.
+
+```tsx
+// left-[calc(var(--sidebar-width)*-1)]
+className="-left-(--sidebar-width)"
+
+// [backface-visibility:hidden]
+className="backface-hidden"
+```
+
+Check every class string in the files you touched, not only the line that was reported.
