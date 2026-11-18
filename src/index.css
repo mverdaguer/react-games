@@ -52,6 +52,13 @@
     --color-mine-6: var(--mine-6);
     --color-mine-7: var(--mine-7);
     --color-mine-8: var(--mine-8);
+    --color-lcd: var(--lcd);
+    --color-lcd-ink: var(--lcd-ink);
+    --color-lcd-ghost: var(--lcd-ghost);
+    --color-phone-body: var(--phone-body);
+    --color-phone-bezel: var(--phone-bezel);
+    --color-phone-key: var(--phone-key);
+    --color-phone-key-ink: var(--phone-key-ink);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -59,6 +66,13 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+    --animate-lcd-blink: lcd-blink 0.5s steps(1, end) 4;
+
+    @keyframes lcd-blink {
+        50% {
+            opacity: 0;
+        }
+    }
 }
 
 :root {
@@ -107,6 +121,13 @@
     --mine-6: oklch(0.511 0.096 196.718);
     --mine-7: oklch(0.145 0 0);
     --mine-8: oklch(0.6 0 0);
+    --lcd: oklch(0.93 0.06 155);
+    --lcd-ink: oklch(0.42 0.04 145);
+    --lcd-ghost: oklch(0.42 0.04 145 / 8%);
+    --phone-body: oklch(0.32 0.03 250);
+    --phone-bezel: oklch(0.55 0.02 250);
+    --phone-key: oklch(0.82 0.01 250);
+    --phone-key-ink: oklch(0.2 0.02 250);
 }
 
 .dark {
@@ -154,6 +175,13 @@
     --mine-6: oklch(0.777 0.152 181.912);
     --mine-7: oklch(0.985 0 0);
     --mine-8: oklch(0.705 0.015 286.067);
+    --lcd: oklch(0.93 0.06 155);
+    --lcd-ink: oklch(0.42 0.04 145);
+    --lcd-ghost: oklch(0.42 0.04 145 / 8%);
+    --phone-body: oklch(0.32 0.03 250);
+    --phone-bezel: oklch(0.55 0.02 250);
+    --phone-key: oklch(0.82 0.01 250);
+    --phone-key-ink: oklch(0.2 0.02 250);
 }
 
 @layer base {

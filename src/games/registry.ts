@@ -1,5 +1,5 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from "react"
-import { Bomb, Brain, Grid3x3, type LucideIcon } from "lucide-react"
+import { Bomb, Brain, Grid3x3, Worm, type LucideIcon } from "lucide-react"
 
 export type GameDefinition = {
   slug: string
@@ -14,6 +14,7 @@ export type GameDefinition = {
 const loadTicTacToe = () => import("@/games/tic-tac-toe")
 const loadMemory = () => import("@/games/memory")
 const loadMinesweeper = () => import("@/games/minesweeper")
+const loadSnake = () => import("@/games/snake")
 
 export const games: GameDefinition[] = [
   {
@@ -42,6 +43,16 @@ export const games: GameDefinition[] = [
     tags: ["Solo", "Logic"],
     component: lazy(loadMinesweeper),
     preload: loadMinesweeper,
+  },
+  {
+    slug: "snake",
+    name: "Snake",
+    description:
+      "Eat the food and grow without biting your own tail. Walls wrap around: leave one side and come back on the other.",
+    icon: Worm,
+    tags: ["Solo", "Arcade"],
+    component: lazy(loadSnake),
+    preload: loadSnake,
   },
 ]
 
