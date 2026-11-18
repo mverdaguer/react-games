@@ -11,6 +11,7 @@ Live demo: [games.verdegang.workers.dev](https://games.verdegang.workers.dev)
 | Tic-Tac-Toe | `/games/tic-tac-toe` | Two players, one device. Line up three marks. The score carries across rounds. |
 | Memory Match | `/games/memory` | Flip cards on a 4×4 board and find every pair. Moves and time are tracked. |
 | Minesweeper | `/games/minesweeper` | Clear every safe square. Left click opens, right click flags. Beginner, Intermediate, and Expert. |
+| Snake | `/games/snake` | Eat the food and grow. Walls wrap around. Arrow keys, swipes, or the keypad. The best score is kept for each level. |
 
 `/` is the shelf of games. Any other address shows a not-found page.
 
