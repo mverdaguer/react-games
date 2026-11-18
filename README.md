@@ -15,10 +15,23 @@ A small single-page app for playing web games in the browser. A sidebar lists th
 ## Scripts
 
 ```bash
-pnpm dev      # start the dev server
-pnpm build    # typecheck and build for production
-pnpm preview  # serve the production build
-pnpm lint     # run oxlint
+pnpm dev        # start the dev server
+pnpm build      # typecheck and build for production
+pnpm preview    # serve the production build
+pnpm lint       # run oxlint
+pnpm test       # run unit and component tests once
+pnpm test:watch # run unit and component tests in watch mode
+pnpm test:e2e   # run Playwright against the production preview
+```
+
+## Tests
+
+`src/**/*.test.ts` runs in Node. `src/**/*.test.tsx` runs in Vitest Browser Mode. `e2e/*.spec.ts` runs in Playwright.
+
+Install Chromium once before the end-to-end tests:
+
+```bash
+pnpm exec playwright install chromium
 ```
 
 ## Stack

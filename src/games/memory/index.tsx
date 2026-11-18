@@ -3,34 +3,7 @@ import { RotateCcw } from "lucide-react"
 
 import { GameShell } from "@/components/GameShell"
 import { Button } from "@/components/ui/button"
-
-const symbols = ["🎮", "🎲", "🎯", "🚀", "🌟", "🎨", "🎵", "🏆"]
-
-type Card = {
-  id: number
-  symbol: string
-  flipped: boolean
-  matched: boolean
-}
-
-function shuffle<T>(items: T[]) {
-  const next = items.slice()
-  for (let index = next.length - 1; index > 0; index -= 1) {
-    const swap = Math.floor(Math.random() * (index + 1))
-    const current = next[index]
-    next[index] = next[swap] as T
-    next[swap] = current as T
-  }
-  return next
-}
-
-function createDeck(): Card[] {
-  const pairs = symbols.flatMap((symbol, index) => [
-    { id: index * 2, symbol, flipped: false, matched: false },
-    { id: index * 2 + 1, symbol, flipped: false, matched: false },
-  ])
-  return shuffle(pairs)
-}
+import { createDeck, flipCard, hideCards, isWon } from "@/games/memory/logic"
 
 const clock = new Intl.DateTimeFormat(undefined, {
   minute: "2-digit",
@@ -50,7 +23,7 @@ export default function MemoryMatch() {
   const lock = useRef(false)
   const round = useRef(0)
 
-  const won = cards.every((card) => card.matched)
+  const won = isWon(cards)
 
   useEffect(() => {
     if (!running || won) return
@@ -71,51 +44,24 @@ export default function MemoryMatch() {
 
   function flip(id: number) {
     if (lock.current || won) return
-    const card = cards.find((item) => item.id === id)
-    if (!card || card.flipped || card.matched) return
-
-    const open = cards.filter((item) => item.flipped && !item.matched)
-    if (open.length >= 2) return
-
+    const result = flipCard(cards, id)
+    if (result.kind === "ignored") return
     if (!running) setRunning(true)
-
-    const next = cards.map((item) =>
-      item.id === id ? { ...item, flipped: true } : item,
-    )
-    const opened = next.filter((item) => item.flipped && !item.matched)
-
-    if (opened.length < 2) {
-      setCards(next)
+    if (result.kind === "opened") {
+      setCards(result.cards)
       return
     }
 
     setMoves((value) => value + 1)
-    const [first, second] = opened
-    if (!first || !second) return
+    setCards(result.cards)
+    if (result.kind !== "mismatched") return
 
-    if (first.symbol === second.symbol) {
-      setCards(
-        next.map((item) =>
-          item.id === first.id || item.id === second.id
-            ? { ...item, matched: true }
-            : item,
-        ),
-      )
-      return
-    }
-
-    setCards(next)
     lock.current = true
     const roundAtFlip = round.current
+    const pair = result.pair
     window.setTimeout(() => {
       if (round.current !== roundAtFlip) return
-      setCards((current) =>
-        current.map((item) =>
-          item.id === first.id || item.id === second.id
-            ? { ...item, flipped: false }
-            : item,
-        ),
-      )
+      setCards((current) => hideCards(current, pair))
       lock.current = false
     }, 750)
   }
@@ -144,7 +90,7 @@ export default function MemoryMatch() {
         <p className="text-sm font-medium" aria-live="polite">
           {status}
         </p>
-        <div className="grid grid-cols-4 gap-2 sm:gap-3">
+        <div className="grid grid-cols-4 gap-2 sm:gap-3" role="group" aria-label="Cards">
           {cards.map((card) => {
             const faceUp = card.flipped || card.matched
             return (

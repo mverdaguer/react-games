@@ -3,31 +3,15 @@ import { RotateCcw } from "lucide-react"
 
 import { GameShell } from "@/components/GameShell"
 import { Button } from "@/components/ui/button"
-
-type Mark = "X" | "O"
-type Cell = Mark | null
-
-const lines = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6],
-]
-
-function winningLine(board: Cell[]) {
-  return (
-    lines.find(([a, b, c]) => {
-      const mark = board[a]
-      return mark !== null && mark === board[b] && mark === board[c]
-    }) ?? null
-  )
-}
-
-const emptyBoard = (): Cell[] => Array.from({ length: 9 }, () => null)
+import {
+  applyMove,
+  emptyBoard,
+  isDraw,
+  nextTurn,
+  winningLine,
+  type Cell,
+  type Mark,
+} from "@/games/tic-tac-toe/logic"
 
 export default function TicTacToe() {
   const [board, setBoard] = useState<Cell[]>(emptyBoard)
@@ -35,13 +19,12 @@ export default function TicTacToe() {
   const [scores, setScores] = useState({ X: 0, O: 0 })
 
   const winLine = useMemo(() => winningLine(board), [board])
-  const draw = winLine === null && board.every((cell) => cell !== null)
+  const draw = isDraw(board)
   const winner = winLine ? board[winLine[0]] : null
 
   function play(index: number) {
-    if (board[index] !== null || winLine) return
-    const next = board.slice()
-    next[index] = turn
+    const next = applyMove(board, index, turn)
+    if (next === board) return
     setBoard(next)
     if (winningLine(next)) {
       setScores((current) => ({
@@ -50,7 +33,7 @@ export default function TicTacToe() {
       }))
       return
     }
-    setTurn(turn === "X" ? "O" : "X")
+    setTurn(nextTurn(turn))
   }
 
   function reset() {
@@ -85,7 +68,7 @@ export default function TicTacToe() {
         >
           {status}
         </p>
-        <div className="grid grid-cols-3 gap-2" aria-label="Board">
+        <div className="grid grid-cols-3 gap-2" role="group" aria-label="Board">
           {board.map((cell, index) => {
             const winning = winLine?.includes(index) ?? false
             return (
