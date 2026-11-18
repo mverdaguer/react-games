@@ -27,6 +27,19 @@ test("the sidebar moves between games and back returns to the previous one", asy
   await expect(page).toHaveURL(/\/games\/tic-tac-toe$/)
 })
 
+test("the sidebar closes after choosing a game on a small screen", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto("/")
+
+  await page.getByRole("button", { name: "Toggle Sidebar" }).click()
+  const sidebar = page.locator('[data-sidebar="sidebar"]')
+  await expect(sidebar).toBeVisible()
+
+  await sidebar.getByRole("link", { name: "Snake" }).click()
+  await expect(page).toHaveURL(/\/games\/snake$/)
+  await expect(sidebar).toBeHidden()
+})
+
 test("minesweeper loads from its own address", async ({ page }) => {
   await page.goto("/games/minesweeper")
   const main = page.getByRole("main")
