@@ -8,6 +8,7 @@ A small single-page app for playing web games in the browser. A sidebar lists th
 | --- | --- | --- |
 | Tic-Tac-Toe | `/games/tic-tac-toe` | Two players, one device. Line up three marks. The score carries across rounds. |
 | Memory Match | `/games/memory` | Flip cards on a 4×4 board and find every pair. Moves and time are tracked. |
+| Minesweeper | `/games/minesweeper` | Clear every safe square. Left click opens, right click flags. Beginner, Intermediate, and Expert. |
 
 `/` is the shelf of games. Any other address shows a not-found page.
 
