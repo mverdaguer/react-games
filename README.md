@@ -2,6 +2,8 @@
 
 A small single-page app for playing web games in the browser. A sidebar lists the games, and the one you pick opens in the main frame at its own URL.
 
+Live demo: [games.verdegang.workers.dev](https://games.verdegang.workers.dev)
+
 ## Games
 
 | Game | URL | How to play |
