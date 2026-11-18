@@ -91,7 +91,7 @@ const CellView = memo(function CellView({
       disabled={over}
       aria-disabled={cell.revealed}
       aria-label={cellLabel(cell, index, columns)}
-      className={`${className} flex items-center justify-center p-0 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 [&_svg]:size-4 ${face}`}
+      className={`${className} flex cursor-pointer items-center justify-center p-0 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-default [&_svg]:size-4 ${face}`}
     >
       <CellGlyph cell={cell} over={over} />
     </button>

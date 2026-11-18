@@ -53,7 +53,7 @@ function KeyButton({
       type="button"
       tabIndex={-1}
       aria-label={label}
-      className={`${keyShape} active:translate-y-px`}
+      className={`${keyShape} cursor-pointer active:translate-y-px`}
       onPointerDown={(event) => press(event, onPress)}
       onClick={(event) => {
         if (event.detail === 0) onPress()

@@ -106,7 +106,7 @@ export default function MemoryMatch() {
                       ? `Showing ${card.symbol}`
                       : "Hidden card"
                 }
-                className="perspective-midrange size-16 rounded-xl transition-transform focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-default sm:size-20"
+                className="perspective-midrange size-16 cursor-pointer rounded-xl transition-transform focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-default sm:size-20"
               >
                 <span
                   className={`relative grid size-full transform-3d transition-transform duration-500 ${
