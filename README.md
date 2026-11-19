@@ -59,7 +59,7 @@ flowchart LR
 - **The theme is painted before the first frame.** An inline script in [`index.html`](index.html) reads the saved theme and sets the document class before React loads, so the page does not flash the wrong colors. The Content Security Policy in [`public/_headers`](public/_headers) allows that script by its hash and nothing else inline.
 - **Saved data uses versioned keys.** Scores and settings live under keys like `snake:best-scores:v1`. The theme provider still reads the old `arcade-theme` key and moves it to `arcade-theme:v1`.
 - **No audio files.** Snake, Tetris, and Pang build their sounds with the Web Audio API when you turn sound on.
-- **Static hosting.** [`wrangler.jsonc`](wrangler.jsonc) serves `dist` from Cloudflare Workers and falls back to the app for unknown paths, so a game URL works on refresh. [`public/_headers`](public/_headers) adds the security headers.
+- **Static hosting.** [`wrangler.jsonc`](wrangler.jsonc) serves `dist` from Cloudflare Workers and falls back to the app for unknown paths, so a game URL works on refresh. [`public/_headers`](public/_headers) adds the security headers. Deploys run from GitHub Actions after CI passes on main.
 
 ## Scripts
 
