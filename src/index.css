@@ -73,6 +73,50 @@
     --color-tetris-z: var(--tetris-z);
     --color-tetris-j: var(--tetris-j);
     --color-tetris-l: var(--tetris-l);
+    --color-pang-cabinet: var(--pang-cabinet);
+    --color-pang-cabinet-edge: var(--pang-cabinet-edge);
+    --color-pang-marquee: var(--pang-marquee);
+    --color-pang-marquee-ink: var(--pang-marquee-ink);
+    --color-pang-bezel: var(--pang-bezel);
+    --color-pang-plate: var(--pang-plate);
+    --color-pang-trim: var(--pang-trim);
+    --color-pang-button: var(--pang-button);
+    --color-pang-button-ink: var(--pang-button-ink);
+    --color-pang-fire: var(--pang-fire);
+    --color-pang-fire-ink: var(--pang-fire-ink);
+    --color-pang-hud: var(--pang-hud);
+    --color-pang-player: var(--pang-player);
+    --color-pang-rope: var(--pang-rope);
+    --color-pang-ball: var(--pang-ball);
+    --color-pang-ball-light: var(--pang-ball-light);
+    --color-pang-ball-shade: var(--pang-ball-shade);
+    --color-pang-life: var(--pang-life);
+    --color-pang-boost-double: var(--pang-boost-double);
+    --color-pang-boost-wire: var(--pang-boost-wire);
+    --color-pang-boost-gun: var(--pang-boost-gun);
+    --color-pang-boost-shield: var(--pang-boost-shield);
+    --color-pang-boost-freeze: var(--pang-boost-freeze);
+    --color-pang-boost-slow: var(--pang-boost-slow);
+    --color-pang-boost-dynamite: var(--pang-boost-dynamite);
+    --color-pang-boost-life: var(--pang-boost-life);
+    --color-pang-sky-0: var(--pang-sky-0);
+    --color-pang-sky-1: var(--pang-sky-1);
+    --color-pang-sky-2: var(--pang-sky-2);
+    --color-pang-sky-3: var(--pang-sky-3);
+    --color-pang-sky-4: var(--pang-sky-4);
+    --color-pang-sky-5: var(--pang-sky-5);
+    --color-pang-hill-0: var(--pang-hill-0);
+    --color-pang-hill-1: var(--pang-hill-1);
+    --color-pang-hill-2: var(--pang-hill-2);
+    --color-pang-hill-3: var(--pang-hill-3);
+    --color-pang-hill-4: var(--pang-hill-4);
+    --color-pang-hill-5: var(--pang-hill-5);
+    --color-pang-ground-0: var(--pang-ground-0);
+    --color-pang-ground-1: var(--pang-ground-1);
+    --color-pang-ground-2: var(--pang-ground-2);
+    --color-pang-ground-3: var(--pang-ground-3);
+    --color-pang-ground-4: var(--pang-ground-4);
+    --color-pang-ground-5: var(--pang-ground-5);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -156,6 +200,50 @@
     --tetris-z: oklch(0.63 0.2 25);
     --tetris-j: oklch(0.55 0.16 262);
     --tetris-l: oklch(0.74 0.16 55);
+    --pang-cabinet: oklch(0.34 0.06 28);
+    --pang-cabinet-edge: oklch(0.22 0.04 28);
+    --pang-marquee: oklch(0.55 0.2 27);
+    --pang-marquee-ink: oklch(0.97 0.04 95);
+    --pang-bezel: oklch(0.16 0.02 28);
+    --pang-plate: oklch(0.24 0.03 28);
+    --pang-trim: oklch(0.78 0.14 88);
+    --pang-button: oklch(0.28 0.03 28);
+    --pang-button-ink: oklch(0.93 0.02 88);
+    --pang-fire: oklch(0.58 0.21 27);
+    --pang-fire-ink: oklch(0.98 0.02 95);
+    --pang-hud: oklch(0.96 0.02 95);
+    --pang-player: oklch(0.86 0.15 95);
+    --pang-rope: oklch(0.92 0.02 95);
+    --pang-ball: oklch(0.63 0.21 25);
+    --pang-ball-light: oklch(0.86 0.1 80);
+    --pang-ball-shade: oklch(0.4 0.13 25);
+    --pang-life: oklch(0.7 0.2 25);
+    --pang-boost-double: oklch(0.68 0.14 230);
+    --pang-boost-wire: oklch(0.86 0.16 95);
+    --pang-boost-gun: oklch(0.72 0.17 55);
+    --pang-boost-shield: oklch(0.8 0.12 200);
+    --pang-boost-freeze: oklch(0.9 0.04 230);
+    --pang-boost-slow: oklch(0.74 0.16 150);
+    --pang-boost-dynamite: oklch(0.58 0.22 27);
+    --pang-boost-life: oklch(0.72 0.18 350);
+    --pang-sky-0: oklch(0.78 0.08 250);
+    --pang-sky-1: oklch(0.82 0.1 220);
+    --pang-sky-2: oklch(0.62 0.14 40);
+    --pang-sky-3: oklch(0.3 0.05 265);
+    --pang-sky-4: oklch(0.38 0.05 200);
+    --pang-sky-5: oklch(0.72 0.14 55);
+    --pang-hill-0: oklch(0.46 0.08 150);
+    --pang-hill-1: oklch(0.5 0.11 145);
+    --pang-hill-2: oklch(0.36 0.07 30);
+    --pang-hill-3: oklch(0.24 0.04 160);
+    --pang-hill-4: oklch(0.32 0.04 180);
+    --pang-hill-5: oklch(0.42 0.1 40);
+    --pang-ground-0: oklch(0.42 0.09 70);
+    --pang-ground-1: oklch(0.5 0.11 85);
+    --pang-ground-2: oklch(0.34 0.06 45);
+    --pang-ground-3: oklch(0.22 0.03 265);
+    --pang-ground-4: oklch(0.3 0.04 150);
+    --pang-ground-5: oklch(0.4 0.09 60);
 }
 
 .dark {
@@ -224,6 +312,50 @@
     --tetris-z: oklch(0.63 0.2 25);
     --tetris-j: oklch(0.55 0.16 262);
     --tetris-l: oklch(0.74 0.16 55);
+    --pang-cabinet: oklch(0.34 0.06 28);
+    --pang-cabinet-edge: oklch(0.22 0.04 28);
+    --pang-marquee: oklch(0.55 0.2 27);
+    --pang-marquee-ink: oklch(0.97 0.04 95);
+    --pang-bezel: oklch(0.16 0.02 28);
+    --pang-plate: oklch(0.24 0.03 28);
+    --pang-trim: oklch(0.78 0.14 88);
+    --pang-button: oklch(0.28 0.03 28);
+    --pang-button-ink: oklch(0.93 0.02 88);
+    --pang-fire: oklch(0.58 0.21 27);
+    --pang-fire-ink: oklch(0.98 0.02 95);
+    --pang-hud: oklch(0.96 0.02 95);
+    --pang-player: oklch(0.86 0.15 95);
+    --pang-rope: oklch(0.92 0.02 95);
+    --pang-ball: oklch(0.63 0.21 25);
+    --pang-ball-light: oklch(0.86 0.1 80);
+    --pang-ball-shade: oklch(0.4 0.13 25);
+    --pang-life: oklch(0.7 0.2 25);
+    --pang-boost-double: oklch(0.68 0.14 230);
+    --pang-boost-wire: oklch(0.86 0.16 95);
+    --pang-boost-gun: oklch(0.72 0.17 55);
+    --pang-boost-shield: oklch(0.8 0.12 200);
+    --pang-boost-freeze: oklch(0.9 0.04 230);
+    --pang-boost-slow: oklch(0.74 0.16 150);
+    --pang-boost-dynamite: oklch(0.58 0.22 27);
+    --pang-boost-life: oklch(0.72 0.18 350);
+    --pang-sky-0: oklch(0.78 0.08 250);
+    --pang-sky-1: oklch(0.82 0.1 220);
+    --pang-sky-2: oklch(0.62 0.14 40);
+    --pang-sky-3: oklch(0.3 0.05 265);
+    --pang-sky-4: oklch(0.38 0.05 200);
+    --pang-sky-5: oklch(0.72 0.14 55);
+    --pang-hill-0: oklch(0.46 0.08 150);
+    --pang-hill-1: oklch(0.5 0.11 145);
+    --pang-hill-2: oklch(0.36 0.07 30);
+    --pang-hill-3: oklch(0.24 0.04 160);
+    --pang-hill-4: oklch(0.32 0.04 180);
+    --pang-hill-5: oklch(0.42 0.1 40);
+    --pang-ground-0: oklch(0.42 0.09 70);
+    --pang-ground-1: oklch(0.5 0.11 85);
+    --pang-ground-2: oklch(0.34 0.06 45);
+    --pang-ground-3: oklch(0.22 0.03 265);
+    --pang-ground-4: oklch(0.3 0.04 150);
+    --pang-ground-5: oklch(0.4 0.09 60);
 }
 
 @layer base {
@@ -264,6 +396,15 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+.pang-crt {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    oklch(0 0 0 / 22%) 0 1px,
+    transparent 1px 3px
+  );
+  box-shadow: inset 0 0 28px 10px oklch(0 0 0 / 50%);
 }
 
 .arcade-canvas {

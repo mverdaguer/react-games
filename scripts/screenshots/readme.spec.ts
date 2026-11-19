@@ -97,6 +97,17 @@ test("minesweeper with an opened square", async ({ page }) => {
   await shoot(page, "minesweeper-light")
 })
 
+test("pang in the cabinet", async ({ page }) => {
+  await prepare(page, "dark")
+  await page.goto("/games/pang")
+  await expect(page.getByRole("heading", { level: 1, name: "Pang" })).toBeVisible()
+  await page.getByRole("button", { name: "Start" }).click()
+  await expect(page.getByRole("img", { name: /status playing/ })).toBeVisible()
+  await page.getByRole("button", { name: "Pause" }).click()
+  await expect(page.getByRole("button", { name: "Resume" })).toBeVisible()
+  await shoot(page, "pang-dark")
+})
+
 test("snake on a phone", async ({ page }) => {
   await page.setViewportSize(PHONE)
   await prepare(page, "dark")

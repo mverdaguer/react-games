@@ -1,5 +1,5 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from "react"
-import { Blocks, Bomb, Brain, Grid3x3, Worm, type LucideIcon } from "lucide-react"
+import { Blocks, Bomb, Brain, Grid3x3, Volleyball, Worm, type LucideIcon } from "lucide-react"
 
 export type GameDefinition = {
   slug: string
@@ -16,6 +16,7 @@ const loadMemory = () => import("@/games/memory")
 const loadMinesweeper = () => import("@/games/minesweeper")
 const loadSnake = () => import("@/games/snake")
 const loadTetris = () => import("@/games/tetris")
+const loadPang = () => import("@/games/pang")
 
 export const games: GameDefinition[] = [
   {
@@ -64,6 +65,16 @@ export const games: GameDefinition[] = [
     tags: ["Solo", "Arcade"],
     component: lazy(loadTetris),
     preload: loadTetris,
+  },
+  {
+    slug: "pang",
+    name: "Pang",
+    description:
+      "Pop the bouncing balls before they reach you. Boosts drop as they split, and every cleared stage sends in more balls.",
+    icon: Volleyball,
+    tags: ["Solo", "Arcade"],
+    component: lazy(loadPang),
+    preload: loadPang,
   },
 ]
 
