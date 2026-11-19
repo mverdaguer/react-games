@@ -7,7 +7,7 @@ import {
   type Game,
   type Point,
 } from "./logic"
-import { bitmapRects, glyphRows, textWidth } from "./pixel-font"
+import { bitmapRects, glyphRows, textWidth } from "@/games/shared/pixel-font"
 import { apple, body, critters, head, meal, tail } from "./sprites"
 
 const VIEW_WIDTH = 99

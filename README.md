@@ -12,6 +12,7 @@ Live demo: [games.verdegang.workers.dev](https://games.verdegang.workers.dev)
 | Memory Match | `/games/memory` | Flip cards on a 4×4 board and find every pair. Moves and time are tracked. |
 | Minesweeper | `/games/minesweeper` | Clear every safe square. Left click opens, right click flags. Beginner, Intermediate, and Expert. |
 | Snake | `/games/snake` | Eat the food and grow. Walls wrap around. Arrow keys, swipes, or the keypad. The best score is kept for each level. |
+| Tetris | `/games/tetris` | Clear lines on a 10×20 well. No hold, no hard drop, one next piece. Arrow keys, the D-pad, or touch. The best score is kept for each start level. |
 
 `/` is the shelf of games. Any other address shows a not-found page.
 

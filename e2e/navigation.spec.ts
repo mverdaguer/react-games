@@ -7,6 +7,7 @@ test("home lists the games and opens Tic-Tac-Toe", async ({ page }) => {
   await expect(main.getByRole("link", { name: "Memory Match" })).toBeVisible()
   await expect(main.getByRole("link", { name: "Minesweeper" })).toBeVisible()
   await expect(main.getByRole("link", { name: "Snake" })).toBeVisible()
+  await expect(main.getByRole("link", { name: "Tetris" })).toBeVisible()
 
   await main.getByRole("link", { name: "Tic-Tac-Toe" }).click()
   await expect(page).toHaveURL(/\/games\/tic-tac-toe$/)
@@ -52,6 +53,13 @@ test("snake loads from its own address", async ({ page }) => {
   const main = page.getByRole("main")
   await expect(main.getByRole("heading", { level: 1, name: "Snake" })).toBeVisible()
   await expect(main.getByRole("img", { name: /Snake board/ })).toBeVisible()
+})
+
+test("tetris loads from its own address", async ({ page }) => {
+  await page.goto("/games/tetris")
+  const main = page.getByRole("main")
+  await expect(main.getByRole("heading", { level: 1, name: "Tetris" })).toBeVisible()
+  await expect(main.getByRole("img", { name: /Tetris board/ })).toBeVisible()
 })
 
 test("an unknown game links back to the shelf", async ({ page }) => {

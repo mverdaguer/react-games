@@ -1,5 +1,5 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from "react"
-import { Bomb, Brain, Grid3x3, Worm, type LucideIcon } from "lucide-react"
+import { Blocks, Bomb, Brain, Grid3x3, Worm, type LucideIcon } from "lucide-react"
 
 export type GameDefinition = {
   slug: string
@@ -15,6 +15,7 @@ const loadTicTacToe = () => import("@/games/tic-tac-toe")
 const loadMemory = () => import("@/games/memory")
 const loadMinesweeper = () => import("@/games/minesweeper")
 const loadSnake = () => import("@/games/snake")
+const loadTetris = () => import("@/games/tetris")
 
 export const games: GameDefinition[] = [
   {
@@ -53,6 +54,16 @@ export const games: GameDefinition[] = [
     tags: ["Solo", "Arcade"],
     component: lazy(loadSnake),
     preload: loadSnake,
+  },
+  {
+    slug: "tetris",
+    name: "Tetris",
+    description:
+      "Stack the pieces and clear lines. No hold and no hard drop: rotate, slide, and soft drop, the way the 1989 game did.",
+    icon: Blocks,
+    tags: ["Solo", "Arcade"],
+    component: lazy(loadTetris),
+    preload: loadTetris,
   },
 ]
 
