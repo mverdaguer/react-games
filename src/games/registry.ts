@@ -22,9 +22,9 @@ export const games: GameDefinition[] = [
   {
     slug: "tic-tac-toe",
     name: "Tic-Tac-Toe",
-    description: "Take turns on a 3×3 grid. Line up three marks to win.",
+    description: "Play the computer or a friend on a 3×3 grid. Line up three marks to win.",
     icon: Grid3x3,
-    tags: ["Two player", "Quick"],
+    tags: ["Solo", "Two player"],
     component: lazy(loadTicTacToe),
     preload: loadTicTacToe,
   },

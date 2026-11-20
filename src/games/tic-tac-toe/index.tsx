@@ -1,28 +1,55 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { RotateCcw } from "lucide-react"
 
 import { GameShell } from "@/components/GameShell"
 import { Button } from "@/components/ui/button"
 import {
   applyMove,
+  computerMove,
   emptyBoard,
   isDraw,
   nextTurn,
   winningLine,
   type Cell,
+  type Level,
   type Mark,
 } from "@/games/tic-tac-toe/logic"
+
+type Opponent = "human" | Level
+
+const OPPONENTS: { id: Opponent; label: string }[] = [
+  { id: "human", label: "Two players" },
+  { id: "easy", label: "Easy" },
+  { id: "hard", label: "Hard" },
+]
 
 export default function TicTacToe() {
   const [board, setBoard] = useState<Cell[]>(emptyBoard)
   const [turn, setTurn] = useState<Mark>("X")
   const [scores, setScores] = useState({ X: 0, O: 0 })
+  const [opponent, setOpponent] = useState<Opponent>("easy")
+  const timer = useRef<number | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (timer.current !== null) window.clearTimeout(timer.current)
+    }
+  }, [])
 
   const winLine = useMemo(() => winningLine(board), [board])
   const draw = isDraw(board)
   const winner = winLine ? board[winLine[0]] : null
+  const vsComputer = opponent !== "human"
+  const computerTurn = vsComputer && turn === "O"
+
+  function clearTimer() {
+    if (timer.current === null) return
+    window.clearTimeout(timer.current)
+    timer.current = null
+  }
 
   function play(index: number) {
+    if (timer.current !== null || computerTurn) return
     const next = applyMove(board, index, turn)
     if (next === board) return
     setBoard(next)
@@ -33,26 +60,76 @@ export default function TicTacToe() {
       }))
       return
     }
+    if (opponent !== "human" && !isDraw(next)) {
+      const level = opponent
+      setTurn("O")
+      timer.current = window.setTimeout(() => {
+        timer.current = null
+        const move = computerMove(next, "O", level)
+        if (move === null) return
+        const reply = applyMove(next, move, "O")
+        setBoard(reply)
+        if (winningLine(reply)) {
+          setScores((current) => ({ ...current, O: current.O + 1 }))
+          return
+        }
+        if (!isDraw(reply)) setTurn("X")
+      }, 400)
+      return
+    }
     setTurn(nextTurn(turn))
   }
 
   function reset() {
+    clearTimer()
     setBoard(emptyBoard())
     setTurn("X")
   }
 
+  function chooseOpponent(next: Opponent) {
+    if (next === opponent) return
+    clearTimer()
+    setOpponent(next)
+    setBoard(emptyBoard())
+    setTurn("X")
+    setScores({ X: 0, O: 0 })
+  }
+
   const status = winner
-    ? `${winner} wins this round`
+    ? vsComputer
+      ? winner === "X"
+        ? "You win this round"
+        : "Computer wins this round"
+      : `${winner} wins this round`
     : draw
       ? "This round is a draw"
-      : `${turn} to move`
+      : computerTurn
+        ? "Computer to move"
+        : vsComputer
+          ? "Your move"
+          : `${turn} to move`
 
   return (
     <GameShell
       toolbar={
         <>
+          <div role="group" aria-label="Opponent" className="flex gap-1">
+            {OPPONENTS.map((option) => (
+              <Button
+                key={option.id}
+                variant={opponent === option.id ? "default" : "outline"}
+                size="sm"
+                aria-pressed={opponent === option.id}
+                onClick={() => chooseOpponent(option.id)}
+              >
+                {option.label}
+              </Button>
+            ))}
+          </div>
           <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium tabular-nums">
-            X {scores.X} · O {scores.O}
+            {vsComputer
+              ? `You ${scores.X} · Computer ${scores.O}`
+              : `X ${scores.X} · O ${scores.O}`}
           </span>
           <Button variant="outline" size="sm" onClick={reset}>
             <RotateCcw />
@@ -76,7 +153,7 @@ export default function TicTacToe() {
                 key={index}
                 type="button"
                 onClick={() => play(index)}
-                disabled={cell !== null || winLine !== null}
+                disabled={cell !== null || winLine !== null || computerTurn}
                 aria-label={
                   cell
                     ? `${cell}, cell ${index + 1}`

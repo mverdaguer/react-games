@@ -13,7 +13,7 @@ Live demo: [games.verdegang.workers.dev](https://games.verdegang.workers.dev)
 
 | Game | URL | How to play |
 | --- | --- | --- |
-| Tic-Tac-Toe | `/games/tic-tac-toe` | Two players, one device. Line up three marks. The score carries across rounds. |
+| Tic-Tac-Toe | `/games/tic-tac-toe` | Play the computer on Easy or Hard, or two players on one device. Line up three marks. The score carries across rounds. |
 | Memory Match | `/games/memory` | Flip cards on a 4×4 board and find every pair. Moves and time are tracked. |
 | Minesweeper | `/games/minesweeper` | Clear every safe square. Left click opens, right click flags. Beginner, Intermediate, and Expert. |
 | Snake | `/games/snake` | Eat the food and grow. Walls wrap around. Arrow keys, swipes, or the keypad. The best score is kept for each level. |
@@ -68,7 +68,7 @@ flowchart LR
 - End-to-end tests run in Chromium only.
 - Scores and settings are stored per browser in `localStorage`. There is no global leaderboard yet.
 - Accessibility is checked by hand. There are no automated checks yet.
-- What's next: a computer opponent for Tic-Tac-Toe, automated accessibility checks, and a Snake leaderboard on Cloudflare D1.
+- What's next: automated accessibility checks, and a Snake leaderboard on Cloudflare D1.
 
 ## Scripts
 

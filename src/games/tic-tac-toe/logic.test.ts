@@ -3,11 +3,14 @@ import { describe, expect, it } from "vitest"
 import {
   LINES,
   applyMove,
+  bestMove,
+  computerMove,
   emptyBoard,
   isDraw,
   nextTurn,
   winningLine,
   type Cell,
+  type Mark,
 } from "@/games/tic-tac-toe/logic"
 
 function boardWith(marks: Record<number, Cell>): Cell[] {
@@ -106,3 +109,84 @@ describe("nextTurn", () => {
     expect(nextTurn("O")).toBe("X")
   })
 })
+
+describe("bestMove", () => {
+  it("takes a winning move when it could block instead", () => {
+    const board = boardWith({ 0: "X", 1: "X", 3: "O", 4: "O" })
+    expect(bestMove(board, "X")).toBe(2)
+  })
+
+  it("blocks when the opponent is one move from winning", () => {
+    const board = boardWith({ 0: "X", 1: "X", 4: "O" })
+    expect(bestMove(board, "O")).toBe(2)
+  })
+
+  it("returns null when the round is already won", () => {
+    const board = boardWith({ 0: "X", 1: "X", 2: "X" })
+    expect(bestMove(board, "O")).toBeNull()
+  })
+
+  it("never loses, moving second or first", () => {
+    expect(tallyGames("O")).toMatchObject({ losses: 0, games: 569 })
+    expect(tallyGames("X")).toMatchObject({ losses: 0, games: 73 })
+  })
+})
+
+describe("computerMove", () => {
+  it("plays a random empty cell on Easy when the roll is low", () => {
+    const board = boardWith({ 3: "X", 4: "X", 6: "O" })
+    expect(computerMove(board, "O", "easy", () => 0)).toBe(0)
+    expect(bestMove(board, "O")).toBe(5)
+  })
+
+  it("plays the best move on Easy when the roll is high", () => {
+    const board = boardWith({ 3: "X", 4: "X", 6: "O" })
+    expect(computerMove(board, "O", "easy", () => 0.99)).toBe(5)
+  })
+
+  it("plays the best move on Hard", () => {
+    const board = boardWith({ 3: "X", 4: "X", 6: "O" })
+    expect(computerMove(board, "O", "hard", () => 0)).toBe(5)
+  })
+})
+
+function tallyGames(computer: Mark) {
+  const tally = { wins: 0, draws: 0, losses: 0, games: 0 }
+  playEvery(emptyBoard(), "X", computer, tally)
+  return {
+    wins: tally.wins,
+    draws: tally.draws,
+    losses: tally.losses,
+    games: tally.games,
+  }
+}
+
+function playEvery(
+  board: Cell[],
+  turn: Mark,
+  computer: Mark,
+  tally: { wins: number; draws: number; losses: number; games: number },
+) {
+  const line = winningLine(board)
+  if (line) {
+    tally.games += 1
+    if (board[line[0]] === computer) tally.wins += 1
+    else tally.losses += 1
+    return
+  }
+  if (isDraw(board)) {
+    tally.games += 1
+    tally.draws += 1
+    return
+  }
+  if (turn === computer) {
+    const move = bestMove(board, computer)
+    if (move === null) throw new Error("computer has no move")
+    playEvery(applyMove(board, move, computer), nextTurn(computer), computer, tally)
+    return
+  }
+  for (let index = 0; index < board.length; index += 1) {
+    if (board[index] !== null) continue
+    playEvery(applyMove(board, index, turn), nextTurn(turn), computer, tally)
+  }
+}
