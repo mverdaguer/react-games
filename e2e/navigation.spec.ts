@@ -70,6 +70,33 @@ test("pang loads from its own address", async ({ page }) => {
   await expect(main.getByRole("img", { name: /Pang board/ })).toBeVisible()
 })
 
+test("each page sets its own title", async ({ page }) => {
+  await page.goto("/")
+  await expect(page).toHaveTitle("Arcade")
+
+  await page.goto("/games/tetris")
+  await expect(page).toHaveTitle("Tetris · Arcade")
+
+  await page.goto("/games/nope")
+  await expect(page).toHaveTitle("Not found · Arcade")
+})
+
+test("the title follows client-side navigation", async ({ page }) => {
+  await page.goto("/")
+  await expect(page).toHaveTitle("Arcade")
+  const sidebar = page.locator('[data-sidebar="sidebar"]')
+
+  await sidebar.getByRole("link", { name: "Memory Match" }).click()
+  await expect(page).toHaveURL(/\/games\/memory$/)
+  await expect(page).toHaveTitle("Memory Match · Arcade")
+
+  await sidebar.getByRole("link", { name: "Snake" }).click()
+  await expect(page).toHaveTitle("Snake · Arcade")
+
+  await page.goBack()
+  await expect(page).toHaveTitle("Memory Match · Arcade")
+})
+
 test("an unknown game links back to the shelf", async ({ page }) => {
   await page.goto("/games/nope")
   await expect(
