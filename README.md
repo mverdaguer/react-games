@@ -1,5 +1,7 @@
 # Arcade
 
+[![CI](https://github.com/mverdaguer/react-games/actions/workflows/ci.yml/badge.svg)](https://github.com/mverdaguer/react-games/actions/workflows/ci.yml)
+
 A small single-page app for playing web games in the browser. A sidebar lists the games, and the one you pick opens in the main frame at its own URL.
 
 Live demo: [games.verdegang.workers.dev](https://games.verdegang.workers.dev)
@@ -60,6 +62,13 @@ flowchart LR
 - **Saved data uses versioned keys.** Scores and settings live under keys like `snake:best-scores:v1`. The theme provider still reads the old `arcade-theme` key and moves it to `arcade-theme:v1`.
 - **No audio files.** Snake, Tetris, and Pang build their sounds with the Web Audio API when you turn sound on.
 - **Static hosting.** [`wrangler.jsonc`](wrangler.jsonc) serves `dist` from Cloudflare Workers and falls back to the app for unknown paths, so a game URL works on refresh. [`public/_headers`](public/_headers) adds the security headers. Deploys run from GitHub Actions after CI passes on main.
+
+## Trade-offs and what's next
+
+- End-to-end tests run in Chromium only.
+- Scores and settings are stored per browser in `localStorage`. There is no global leaderboard yet.
+- Accessibility is checked by hand. There are no automated checks yet.
+- What's next: a computer opponent for Tic-Tac-Toe, automated accessibility checks, and a Snake leaderboard on Cloudflare D1.
 
 ## Scripts
 
