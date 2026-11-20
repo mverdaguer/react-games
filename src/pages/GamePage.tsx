@@ -1,6 +1,7 @@
 import { Suspense, ViewTransition } from "react"
 import { useParams } from "react-router"
 
+import { GameErrorBoundary } from "@/components/GameErrorBoundary"
 import { GameIdentity } from "@/components/GameIdentity"
 import { DirectionalTransition } from "@/components/page-transition"
 import { Badge } from "@/components/ui/badge"
@@ -38,19 +39,21 @@ export function GamePage() {
             ))}
           </div>
         </div>
-        <Suspense
-          fallback={
-            <ViewTransition exit="slide-down">
-              <p className="col-span-full text-sm text-muted-foreground">
-                Loading game…
-              </p>
+        <GameErrorBoundary key={game.slug}>
+          <Suspense
+            fallback={
+              <ViewTransition exit="slide-down">
+                <p className="col-span-full text-sm text-muted-foreground">
+                  Loading game…
+                </p>
+              </ViewTransition>
+            }
+          >
+            <ViewTransition enter="slide-up" default="none">
+              <Game />
             </ViewTransition>
-          }
-        >
-          <ViewTransition enter="slide-up" default="none">
-            <Game />
-          </ViewTransition>
-        </Suspense>
+          </Suspense>
+        </GameErrorBoundary>
       </div>
     </DirectionalTransition>
   )

@@ -74,11 +74,11 @@ export function TransitionLink({
     <Link
       to={to}
       onMouseEnter={(event) => {
-        void preload?.()
+        preload?.().catch(() => {})
         onMouseEnter?.(event)
       }}
       onFocus={(event) => {
-        void preload?.()
+        preload?.().catch(() => {})
         onFocus?.(event)
       }}
       onClick={(event) => {
@@ -104,11 +104,11 @@ export function TransitionNavLink({
     <NavLink
       to={to}
       onMouseEnter={(event) => {
-        void preload?.()
+        preload?.().catch(() => {})
         onMouseEnter?.(event)
       }}
       onFocus={(event) => {
-        void preload?.()
+        preload?.().catch(() => {})
         onFocus?.(event)
       }}
       onClick={(event) => {

@@ -97,6 +97,21 @@ test("the title follows client-side navigation", async ({ page }) => {
   await expect(page).toHaveTitle("Memory Match · Arcade")
 })
 
+test("a game that fails to download offers a reload, and other games still load", async ({
+  page,
+}) => {
+  await page.route("**/assets/tetris-*.js", (route) => route.abort())
+  await page.goto("/games/tetris")
+  const main = page.getByRole("main")
+  await expect(main.getByRole("heading", { level: 1, name: "Tetris" })).toBeVisible()
+  await expect(main.getByRole("alert")).toBeVisible()
+  await expect(main.getByRole("button", { name: "Reload" })).toBeVisible()
+
+  await page.locator('[data-sidebar="sidebar"]').getByRole("link", { name: "Snake" }).click()
+  await expect(main.getByRole("img", { name: /Snake board/ })).toBeVisible()
+  await expect(main.getByRole("alert")).toBeHidden()
+})
+
 test("an unknown game links back to the shelf", async ({ page }) => {
   await page.goto("/games/nope")
   await expect(

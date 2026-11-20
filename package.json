@@ -1,8 +1,9 @@
 {
   "name": "react-games",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
+  "author": "Marc Verdaguer",
   "packageManager": "pnpm@11.2.2",
   "type": "module",
   "scripts": {

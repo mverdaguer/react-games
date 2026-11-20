@@ -105,3 +105,9 @@ Games are registered in [`src/games/registry.ts`](src/games/registry.ts). The si
 2. Add an entry to `games` with a slug, name, description, icon, tags, and a `lazy` import of that component.
 
 The game is then available at `/games/<slug>`. Run `pnpm screenshots` afterwards so the shelf images stay current.
+
+## Author
+
+Built by Marc Verdaguer, a senior frontend engineer working in TypeScript, React, and Vue.
+
+[GitHub](https://github.com/mverdaguer)
