@@ -76,7 +76,7 @@ test("space starts and pauses, and leaving the window pauses", async () => {
 test("the d-pad moves the piece and rotate changes its rotation", async () => {
   const screen = await render(<Tetris />)
 
-  await screen.getByRole("button", { name: "Start" }).click()
+  await screen.getByRole("button", { name: "Start, START" }).click()
   await expect
     .element(screen.getByText("Press Space or Start to pause. Select hides the next piece."))
     .toBeVisible()
@@ -90,7 +90,7 @@ test("the d-pad moves the piece and rotate changes its rotation", async () => {
     return match ? Number(match[1]) : null
   }).toBe(x - 1)
 
-  await screen.getByRole("button", { name: "Rotate clockwise" }).click()
+  await screen.getByRole("button", { name: "Rotate clockwise, A" }).click()
   await expect.poll(() => boardLabel(screen)).toMatch(/rotation 1/)
 
   await screen.getByRole("button", { name: "Right" }).click()
@@ -99,7 +99,7 @@ test("the d-pad moves the piece and rotate changes its rotation", async () => {
 
 test("select hides the next piece", async () => {
   const screen = await render(<Tetris />)
-  const preview = screen.getByRole("button", { name: "Preview" })
+  const preview = screen.getByRole("button", { name: "Preview, SELECT" })
 
   await preview.click()
   await expect.element(preview).toHaveAttribute("aria-pressed", "false")
@@ -120,7 +120,7 @@ test("topping out records a best score", async () => {
   )
   const screen = await render(<Tetris />)
 
-  await screen.getByRole("button", { name: "Start" }).click()
+  await screen.getByRole("button", { name: "Start, START" }).click()
   await expect
     .poll(() => screen.getByText(/Game over/).element().textContent ?? "", { timeout: 30_000 })
     .toMatch(/Game over · \d+ points · New best!/)

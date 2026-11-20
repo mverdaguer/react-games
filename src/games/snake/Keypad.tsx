@@ -52,7 +52,7 @@ function KeyButton({
     <button
       type="button"
       tabIndex={-1}
-      aria-label={label}
+      aria-label={`${label}, ${digit}`}
       className={`${keyShape} cursor-pointer active:translate-y-px`}
       onPointerDown={(event) => press(event, onPress)}
       onClick={(event) => {

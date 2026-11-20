@@ -209,7 +209,7 @@ export function Device({
         <div aria-hidden className="size-2 rounded-full bg-gbc-led" />
         <div className="overflow-hidden rounded-md bg-gbc-screen p-1">{screen}</div>
       </div>
-      <span className="block text-center text-xs font-medium tracking-widest text-gbc-button-ink">
+      <span className="block text-center text-xs font-medium tracking-widest text-gbc-bezel">
         GAME BOY COLOR
       </span>
       <div className="flex items-start justify-between pt-2">
@@ -235,7 +235,7 @@ export function Device({
         <div className="flex items-end gap-3">
           <div className="mb-4">
             <TapButton
-              label="Rotate clockwise"
+              label="Rotate clockwise, A"
               className={roundButton}
               onPress={() => onRotate("cw")}
             >
@@ -243,7 +243,7 @@ export function Device({
             </TapButton>
           </div>
           <TapButton
-            label="Rotate counter-clockwise"
+            label="Rotate counter-clockwise, B"
             className={roundButton}
             onPress={() => onRotate("ccw")}
           >
@@ -252,10 +252,15 @@ export function Device({
         </div>
       </div>
       <div className="flex justify-center gap-6 pt-2">
-        <TapButton label="Preview" className={pillButton} pressed={previewOn} onPress={onPreview}>
+        <TapButton
+          label="Preview, SELECT"
+          className={pillButton}
+          pressed={previewOn}
+          onPress={onPreview}
+        >
           SELECT
         </TapButton>
-        <TapButton label={primaryLabel} className={pillButton} onPress={onPrimary}>
+        <TapButton label={`${primaryLabel}, START`} className={pillButton} onPress={onPrimary}>
           START
         </TapButton>
       </div>

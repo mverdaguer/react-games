@@ -59,7 +59,7 @@ export function Home() {
                       </Badge>
                     ))}
                   </div>
-                  <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-primary">
+                  <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-primary-ink">
                     Play
                     <ArrowRight
                       aria-hidden="true"

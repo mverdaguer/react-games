@@ -53,10 +53,10 @@ test("space starts and pauses, and leaving the window pauses", async () => {
 test("the keypad starts the game and turns the snake", async () => {
   const screen = await render(<Snake />)
 
-  await screen.getByRole("button", { name: "Start" }).click()
+  await screen.getByRole("button", { name: "Start, 5" }).click()
   await expect.element(screen.getByText("Walls wrap around. Press Space or 5 to pause.")).toBeVisible()
 
-  await screen.getByRole("button", { name: "Up" }).click()
+  await screen.getByRole("button", { name: "Up, 2" }).click()
   await expect.poll(() => screen.getByRole("img").element().getAttribute("aria-label")).toMatch(/heading up/)
 })
 

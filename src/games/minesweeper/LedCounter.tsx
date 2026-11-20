@@ -9,6 +9,7 @@ function formatLed(value: number) {
 export function LedCounter({ value, label }: { value: number; label: string }) {
   return (
     <div
+      role="img"
       aria-label={`${label}: ${value}`}
       className="border-2 border-t-mine-bevel-dark border-r-mine-bevel-light border-b-mine-bevel-light border-l-mine-bevel-dark bg-black px-1 font-mono text-2xl leading-none tracking-tight text-red-500 tabular-nums"
     >

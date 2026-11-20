@@ -161,7 +161,7 @@ export default function TicTacToe() {
                 }
                 className={`flex size-24 cursor-pointer items-center justify-center rounded-xl border bg-card text-3xl font-semibold shadow-sm transition-colors outline-none select-none hover:border-primary/40 focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-default aria-disabled:pointer-events-none sm:size-28 ${
                   winning
-                    ? "border-primary bg-primary/15 text-primary"
+                    ? "border-primary bg-primary/15 text-primary-ink"
                     : "border-border"
                 }`}
               >

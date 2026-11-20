@@ -67,8 +67,8 @@ flowchart LR
 
 - End-to-end tests run in Chromium only.
 - Scores and settings are stored per browser in `localStorage`. There is no global leaderboard yet.
-- Accessibility is checked by hand. There are no automated checks yet.
-- What's next: automated accessibility checks, and a Snake leaderboard on Cloudflare D1.
+- Axe runs in the end-to-end tests, on every route, in light and dark. It checks contrast, names, and ARIA. It does not check that a game is playable by keyboard.
+- What's next: a Snake leaderboard on Cloudflare D1.
 
 ## Scripts
 
