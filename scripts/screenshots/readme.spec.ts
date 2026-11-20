@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test"
 
 const PHONE = { width: 390, height: 844 }
 
+// Kept inline: Playwright serializes this into the page, so it cannot import shared/random.
 function installSeededRandom() {
   let state = 1
   Math.random = () => {

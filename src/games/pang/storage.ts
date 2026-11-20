@@ -1,3 +1,5 @@
+import { readRecord, writeRecord } from "@/games/shared/storage"
+
 export type Settings = {
   sound: boolean
 }
@@ -20,19 +22,12 @@ function whole(value: unknown): number | null {
 }
 
 function readBest(): Best | null {
-  try {
-    const raw = localStorage.getItem(BEST_KEY)
-    if (!raw) return null
-    const parsed: unknown = JSON.parse(raw)
-    if (!parsed || typeof parsed !== "object") return null
-    const record = parsed as Record<string, unknown>
-    const score = whole(record.score)
-    const level = whole(record.level)
-    if (score === null || level === null || level < 1) return null
-    return { score, level }
-  } catch {
-    return null
-  }
+  const record = readRecord(BEST_KEY)
+  if (!record) return null
+  const score = whole(record.score)
+  const level = whole(record.level)
+  if (score === null || level === null || level < 1) return null
+  return { score, level }
 }
 
 export function loadBest(): Best | null {
@@ -47,26 +42,15 @@ export function saveBest(score: number, level: number): Best {
   }
   if (next.level < 1) return current ?? next
   if (current && current.score === next.score && current.level === next.level) return current
-  try {
-    localStorage.setItem(BEST_KEY, JSON.stringify(next))
-  } catch {
-    return next
-  }
+  writeRecord(BEST_KEY, next)
   return next
 }
 
 function readSettings(): Settings {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY)
-    if (!raw) return { ...DEFAULT_SETTINGS }
-    const parsed: unknown = JSON.parse(raw)
-    if (!parsed || typeof parsed !== "object") return { ...DEFAULT_SETTINGS }
-    const record = parsed as Record<string, unknown>
-    return {
-      sound: typeof record.sound === "boolean" ? record.sound : DEFAULT_SETTINGS.sound,
-    }
-  } catch {
-    return { ...DEFAULT_SETTINGS }
+  const record = readRecord(SETTINGS_KEY)
+  if (!record) return { ...DEFAULT_SETTINGS }
+  return {
+    sound: typeof record.sound === "boolean" ? record.sound : DEFAULT_SETTINGS.sound,
   }
 }
 
@@ -75,10 +59,6 @@ export function loadSettings(): Settings {
 }
 
 export function saveSettings(settings: Settings): Settings {
-  try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
-  } catch {
-    return settings
-  }
+  writeRecord(SETTINGS_KEY, settings)
   return settings
 }

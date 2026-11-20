@@ -1,3 +1,7 @@
+import { random, randomInt } from "@/games/shared/random"
+
+export { random, randomInt }
+
 export const COLUMNS = 24
 export const ROWS = 13
 export const INITIAL_LENGTH = 5
@@ -40,21 +44,6 @@ const OPPOSITE: Record<Direction, Direction> = {
 
 export function tickMs(level: Level): number {
   return TICK_MS[level - 1]
-}
-
-export function random(seed: number): [number, number] {
-  const nextSeed = (seed + 0x6d2b79f5) | 0
-  let t = nextSeed
-  t = Math.imul(t ^ (t >>> 15), t | 1)
-  t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-  const value = ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  return [value, nextSeed]
-}
-
-export function randomInt(seed: number, max: number): [number, number] {
-  if (max <= 0) return [0, seed]
-  const [value, nextSeed] = random(seed)
-  return [Math.floor(value * max), nextSeed]
 }
 
 export function wrap(point: Point, columns: number, rows: number): Point {

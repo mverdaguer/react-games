@@ -1,6 +1,5 @@
-import type { Level } from "./logic"
-
-const LEVELS: readonly Level[] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+import { createBestStore, readRecord, writeRecord } from "@/games/shared/storage"
+import { LEVELS, type Level } from "./logic"
 
 export type BestScores = Partial<Record<Level, number>>
 
@@ -18,58 +17,21 @@ export const DEFAULT_SETTINGS: Settings = {
   sound: false,
 }
 
+const best = createBestStore(SCORES_KEY, LEVELS, (score, stored) => score > stored)
+
+export const loadBestScores = best.load
+export const saveBestScore = best.save
+
 function isLevel(value: unknown): value is Level {
   return LEVELS.some((level) => level === value)
 }
 
-function readScores(): BestScores {
-  try {
-    const raw = localStorage.getItem(SCORES_KEY)
-    if (!raw) return {}
-    const parsed: unknown = JSON.parse(raw)
-    if (!parsed || typeof parsed !== "object") return {}
-    const record = parsed as Record<string, unknown>
-    const scores: BestScores = {}
-    for (const level of LEVELS) {
-      const value = record[String(level)]
-      if (typeof value === "number" && Number.isFinite(value)) scores[level] = value
-    }
-    return scores
-  } catch {
-    return {}
-  }
-}
-
-export function loadBestScores(): BestScores {
-  return readScores()
-}
-
-export function saveBestScore(level: Level, score: number): BestScores {
-  const current = readScores()
-  const stored = current[level]
-  if (stored !== undefined && stored >= score) return current
-  const next: BestScores = { ...current, [level]: score }
-  try {
-    localStorage.setItem(SCORES_KEY, JSON.stringify(next))
-  } catch {
-    return next
-  }
-  return next
-}
-
 function readSettings(): Settings {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY)
-    if (!raw) return { ...DEFAULT_SETTINGS }
-    const parsed: unknown = JSON.parse(raw)
-    if (!parsed || typeof parsed !== "object") return { ...DEFAULT_SETTINGS }
-    const record = parsed as Record<string, unknown>
-    return {
-      level: isLevel(record.level) ? record.level : DEFAULT_SETTINGS.level,
-      sound: typeof record.sound === "boolean" ? record.sound : DEFAULT_SETTINGS.sound,
-    }
-  } catch {
-    return { ...DEFAULT_SETTINGS }
+  const record = readRecord(SETTINGS_KEY)
+  if (!record) return { ...DEFAULT_SETTINGS }
+  return {
+    level: isLevel(record.level) ? record.level : DEFAULT_SETTINGS.level,
+    sound: typeof record.sound === "boolean" ? record.sound : DEFAULT_SETTINGS.sound,
   }
 }
 
@@ -78,10 +40,6 @@ export function loadSettings(): Settings {
 }
 
 export function saveSettings(settings: Settings): Settings {
-  try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
-  } catch {
-    return settings
-  }
+  writeRecord(SETTINGS_KEY, settings)
   return settings
 }
