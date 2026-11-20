@@ -116,3 +116,16 @@ test("snake on a phone", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Up" })).toBeVisible()
   await shoot(page, "snake-mobile-dark")
 })
+
+test.describe("link preview", () => {
+  test.use({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 })
+
+  test("og image", async ({ page }) => {
+    await prepare(page, "dark")
+    await page.goto("/")
+    await expect(
+      page.getByRole("heading", { name: "A small shelf of games, ready to play." }),
+    ).toBeVisible()
+    await page.screenshot({ path: "public/og.png", animations: "disabled" })
+  })
+})

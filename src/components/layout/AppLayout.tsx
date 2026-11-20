@@ -14,9 +14,15 @@ export function AppLayout() {
   const { pathname } = useLocation()
   const game = games.find((item) => pathname === `/games/${item.slug}`)
   const title = game?.name ?? (pathname === "/" ? "Home" : "Arcade")
+  const documentTitle = game
+    ? `${game.name} · Arcade`
+    : pathname === "/"
+      ? "Arcade"
+      : "Not found · Arcade"
 
   return (
     <SidebarProvider>
+      <title>{documentTitle}</title>
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-lg focus:bg-background focus:px-3 focus:py-2 focus:ring-3 focus:ring-ring"
