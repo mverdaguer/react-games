@@ -36,4 +36,22 @@ describe("spa asset fallback", () => {
     expect(await response.json()).toEqual({ error: "game" })
     expect(calls).toBe(0)
   })
+
+  it("answers /api with JSON instead of the app shell", async () => {
+    let calls = 0
+    const response = await handle(new Request("https://games.local/api"), {
+      DB: {} as D1Database,
+      ASSETS: {
+        fetch(input: RequestInfo) {
+          void input
+          calls += 1
+          return Promise.resolve(new Response("index"))
+        },
+      } as Fetcher,
+    })
+
+    expect(response.status).toBe(404)
+    expect(await response.json()).toEqual({ error: "not found" })
+    expect(calls).toBe(0)
+  })
 })

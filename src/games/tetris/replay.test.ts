@@ -13,10 +13,11 @@ function play(seed: number): { log: LogEntry[]; score: number; status: Game["sta
   let count = 0
   while (game.status === "playing" && count < 20_000) {
     if (count % 2 === 0) {
-      const dropped = apply(game, "down")
-      if (dropped !== game) {
-        log.push([count, TETRIS_ACTIONS.indexOf("down")])
-        game = dropped
+      for (const action of ["left", "down"] as const) {
+        const changed = apply(game, action)
+        if (changed === game) continue
+        log.push([count, TETRIS_ACTIONS.indexOf(action)])
+        game = changed
       }
     }
     game = tick(game)
@@ -29,6 +30,7 @@ describe("replay tetris", () => {
   it("reaches the same score in one pass and in steps of one", () => {
     const played = play(11)
     expect(played.status).toBe("over")
+    expect(played.log.some((entry, index) => index > 0 && entry[0] === played.log[index - 1]?.[0])).toBe(true)
     const whole = finishReplay(replay, 0, 11, played.log, 200_000)
     const chunked = finishReplay(replay, 0, 11, played.log, 1)
     expect(whole).toEqual({ status: "done", score: played.score, level: 0 })

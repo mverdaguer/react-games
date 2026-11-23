@@ -321,7 +321,7 @@ export function Screen({ game }: { game: Game }) {
           const origin = cellOrigin(segment)
           const previous = game.snake[index - 1]
           return (
-            <g key={index}>
+            <g key={index} data-head={index === 0 ? `${segment.x},${segment.y}` : undefined}>
               <Bitmap
                 bitmap={segmentBitmap(game, index, heading, mouth)}
                 x={origin.x}

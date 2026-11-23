@@ -3,13 +3,18 @@ import { isGameId, MAX_BODY_BYTES } from "@/games/shared/leaderboard"
 import { continueRun, createRun, listScores, type RunResult } from "./store"
 import { validateSubmission } from "./validate"
 
+type ApiEnv = {
+  DB: D1Database
+  ASSETS?: Fetcher
+}
+
 export default {
   fetch(request: Request, env: Env): Promise<Response> {
     return handle(request, env)
   },
 }
 
-export async function handle(request: Request, env: Env): Promise<Response> {
+export async function handle(request: Request, env: ApiEnv): Promise<Response> {
   const url = new URL(request.url)
   if (request.method === "GET" && url.pathname === "/api/scores") {
     const game = url.searchParams.get("game")
@@ -28,14 +33,14 @@ export async function handle(request: Request, env: Env): Promise<Response> {
     return runResponse(result)
   }
 
-  if (request.method === "GET" && !url.pathname.startsWith("/api/") && env.ASSETS) {
+  if (request.method === "GET" && !isApiPath(url.pathname) && env.ASSETS) {
     return env.ASSETS.fetch(new Request(new URL("/index.html", url), request))
   }
 
   return json({ error: "not found" }, 404)
 }
 
-async function submit(request: Request, env: Env): Promise<Response> {
+async function submit(request: Request, env: ApiEnv): Promise<Response> {
   const text = await request.text()
   if (text.length > MAX_BODY_BYTES) return json({ error: "body" }, 413)
   let parsed: unknown
@@ -45,8 +50,8 @@ async function submit(request: Request, env: Env): Promise<Response> {
     return json({ error: "body" }, 400)
   }
   const validation = validateSubmission(parsed)
-  if (!validation.ok) return json({ error: validation.error }, 422)
-  if (!isAllowedName(validation.submission.name)) return json({ error: "name" }, 422)
+  if (!validation.ok) return json({ status: "rejected", error: validation.error }, 422)
+  if (!isAllowedName(validation.submission.name)) return json({ status: "rejected", error: "name" }, 422)
   const result = await createRun(env.DB, crypto.randomUUID(), validation.submission)
   return runResponse(result)
 }
@@ -69,6 +74,10 @@ function runResponse(result: RunResult): Response {
     case "conflict":
       return json({ status: "conflict" }, 409)
   }
+}
+
+function isApiPath(pathname: string): boolean {
+  return pathname === "/api" || pathname.startsWith("/api/")
 }
 
 function json(body: unknown, status = 200): Response {

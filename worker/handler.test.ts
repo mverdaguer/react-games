@@ -175,7 +175,7 @@ describe("scores api", () => {
         log: CRASH_LOG,
       })
       expect(`${name} ${response.status}`).toBe(`${name} 422`)
-      expect(await response.json()).toEqual({ error: "name" })
+      expect(await response.json()).toEqual({ status: "rejected", error: "name" })
     }
 
     const accepted = await post(db, "/api/runs", {
@@ -280,5 +280,25 @@ describe("scores api", () => {
     expect(await continued.json()).toEqual({ error: "missing" })
     const count = await db.prepare("SELECT COUNT(*) AS count FROM scores").first<{ count: number }>()
     expect(count?.count).toBe(0)
+  })
+
+  it("forgets a receipt after the retry window", async () => {
+    const db = database()
+    const created = await post(db, "/api/runs", {
+      game: "snake",
+      level: 1,
+      name: "Ada",
+      seed: 1,
+      claimed: 0,
+      log: CRASH_LOG,
+    })
+    const { id } = (await created.json()) as { id: string }
+    const finished = await settle(db, id)
+    expect(finished.status).toBe(201)
+    await db.prepare("UPDATE run_results SET created_at = datetime('now', '-2 hours') WHERE id = ?").bind(id).run()
+
+    const again = await post(db, `/api/runs/${id}/continue`)
+    expect(again.status).toBe(404)
+    expect(await again.json()).toEqual({ error: "missing" })
   })
 })

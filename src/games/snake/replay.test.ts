@@ -11,6 +11,27 @@ function code(dir: Direction): number {
   return SNAKE_DIRECTIONS.indexOf(dir)
 }
 
+function scoreTurns(
+  level: Level,
+  seed: number,
+  log: readonly LogEntry[],
+): { score: number; status: Game["status"] } {
+  let game = start(createGame(level, seed))
+  let tick = 0
+  let cursor = 0
+  while (game.status === "playing" && tick < 5_000) {
+    while (cursor < log.length && log[cursor]?.[0] === tick) {
+      const turn = log[cursor]?.[1]
+      const dir = turn === undefined ? undefined : SNAKE_DIRECTIONS[turn]
+      if (dir) game = queueTurn(game, dir)
+      cursor += 1
+    }
+    game = step(game)
+    tick += 1
+  }
+  return { score: game.score, status: game.status }
+}
+
 function play(
   level: Level,
   seed: number,
@@ -50,12 +71,38 @@ describe("replay snake", () => {
   it("gives a tampered log the score those turns really earn", () => {
     const played = play(1, 1, (_game, tick) => CRASH[tick] ?? null)
     expect(played.status).toBe("over")
-    const tampered: LogEntry[] = played.log.map((entry, index) =>
-      index === 0 ? [entry[0], code("down")] : entry,
-    )
-    const outcome = finishReplay(replay, 1, 1, tampered, 100_000)
-    const score = outcome.status === "done" ? outcome.score : -1
-    expect(score).not.toBe(played.score)
+    const tampered: LogEntry[] = [
+      [0, code("down")],
+      [1, code("left")],
+      [2, code("up")],
+    ]
+    const lived = scoreTurns(1, 1, tampered)
+    expect(lived).toEqual({ status: "over", score: 0 })
+    expect(tampered).not.toEqual(played.log)
+    expect(finishReplay(replay, 1, 1, tampered, 100_000)).toEqual({
+      status: "done",
+      score: lived.score,
+      level: 1,
+    })
+  })
+
+  it("applies two turns recorded on the same tick", () => {
+    const log: LogEntry[] = [
+      [0, code("up")],
+      [0, code("left")],
+    ]
+    let game = start(createGame(1, 1))
+    game = queueTurn(game, "up")
+    game = queueTurn(game, "left")
+    game = step(game)
+    const outcome = advance(begin(1, 1), log, 1)
+    expect(outcome.status).toBe("running")
+    if (outcome.status !== "running") return
+    expect(outcome.checkpoint.tick).toBe(1)
+    expect(outcome.checkpoint.cursor).toBe(2)
+    expect(outcome.checkpoint.game.snake).toEqual(game.snake)
+    expect(outcome.checkpoint.game.direction).toBe(game.direction)
+    expect(outcome.checkpoint.game.pending).toEqual(game.pending)
   })
 
   it("rejects a snake that never ends", () => {

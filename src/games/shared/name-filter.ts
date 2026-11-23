@@ -1,7 +1,8 @@
 // Blocked score names for English, Spanish, and Catalan.
 // Each entry is already lowercase, with no accents. The check compares a
 // normalized form of the typed name, so case, accents, and simple disguises
-// still match.
+// still match. A repeated letter counts as a blocked word only when every
+// run is at least as long as in the blocked spelling.
 
 const SHORT_WORDS = [
   "anal",
@@ -117,29 +118,72 @@ function fold(value: string): string {
   return swapped
 }
 
-function collapse(value: string): string {
-  return value.replace(/(.)\1+/gu, "$1")
+type LetterRun = { char: string; length: number }
+
+function letterRuns(value: string): LetterRun[] {
+  const parsed: LetterRun[] = []
+  for (const char of value) {
+    const last = parsed.at(-1)
+    if (last && last.char === char) last.length += 1
+    else parsed.push({ char, length: 1 })
+  }
+  return parsed
+}
+
+function covers(text: string, banned: string): boolean {
+  const hay = letterRuns(text)
+  const needle = letterRuns(banned)
+  if (needle.length === 0 || hay.length !== needle.length) return false
+  for (let index = 0; index < needle.length; index += 1) {
+    const left = hay[index]
+    const right = needle[index]
+    if (!left || !right || left.char !== right.char || left.length < right.length) return false
+  }
+  return true
+}
+
+function containsStretch(text: string, banned: string): boolean {
+  const hay = letterRuns(text)
+  const needle = letterRuns(banned)
+  if (needle.length === 0 || hay.length < needle.length) return false
+  for (let start = 0; start <= hay.length - needle.length; start += 1) {
+    let matched = true
+    for (let index = 0; index < needle.length; index += 1) {
+      const left = hay[start + index]
+      const right = needle[index]
+      if (!left || !right || left.char !== right.char || left.length < right.length) {
+        matched = false
+        break
+      }
+    }
+    if (matched) return true
+  }
+  return false
+}
+
+function matchesCover(text: string, list: ReadonlySet<string>): boolean {
+  if (list.has(text)) return true
+  for (const entry of list) {
+    if (covers(text, entry)) return true
+  }
+  return false
 }
 
 export function isAllowedName(name: string): boolean {
   const plain = fold(name).replace(/[ _-]+/g, "")
-  const collapsed = collapse(plain)
-  if (ALLOWED.has(plain) || ALLOWED.has(collapsed)) return true
+  if (matchesCover(plain, ALLOWED)) return true
 
   const words = fold(name)
     .split(/[ _-]+/)
     .filter((word) => word.length > 0)
 
-  for (const banned of SHORT) {
-    const bannedFlat = collapse(banned)
-    if (collapsed === banned || collapsed === bannedFlat) return false
-    for (const word of words) {
-      if (word === banned || collapse(word) === bannedFlat) return false
-    }
+  if (matchesCover(plain, SHORT)) return false
+  for (const word of words) {
+    if (matchesCover(word, SHORT)) return false
   }
 
   for (const banned of LONG) {
-    if (plain.includes(banned) || collapsed.includes(collapse(banned))) return false
+    if (containsStretch(plain, banned)) return false
   }
   return true
 }

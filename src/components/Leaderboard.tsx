@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input"
 import {
   checkName,
   levelLabel,
-  MAX_NAME_LENGTH,
   qualifies,
   type GameId,
   type RecordedRun,
@@ -22,9 +21,11 @@ const FORMAT_HINT = "Use 3 letters."
 export function Leaderboard({ game, run }: { game: GameId; run: RecordedRun | null }) {
   const [board, setBoard] = useState<Board>({ status: "loading" })
   const [notice, setNotice] = useState<{ key: string; text: string } | null>(null)
+  const [failure, setFailure] = useState<{ key: string; text: string } | null>(null)
   const [pending, startTransition] = useTransition()
   const runKey = run ? `${run.seed}:${run.score}:${run.log.length}` : ""
   const shown = notice?.key === runKey ? notice.text : null
+  const failed = failure?.key === runKey ? failure.text : null
 
   useEffect(() => {
     let ignore = false
@@ -41,10 +42,11 @@ export function Leaderboard({ game, run }: { game: GameId; run: RecordedRun | nu
 
   function submit(name: string) {
     if (!run) return
+    setFailure(null)
     startTransition(async () => {
       const submitted = await submitRun(run, name)
       if (submitted.status === "saved") {
-        setNotice({ key: runKey, text: `Saved. You are rank ${submitted.rank}.` })
+        setNotice({ key: runKey, text: `Saved at rank ${submitted.rank}.` })
         const loaded = await fetchScores(game)
         if (loaded.status === "ok") setBoard({ status: "ready", scores: loaded.scores })
         return
@@ -57,7 +59,7 @@ export function Leaderboard({ game, run }: { game: GameId; run: RecordedRun | nu
         setNotice({ key: runKey, text: "That score couldn't be verified." })
         return
       }
-      setBoard({ status: "unavailable" })
+      setFailure({ key: runKey, text: "The leaderboard could not be reached. Try again." })
     })
   }
 
@@ -74,6 +76,11 @@ export function Leaderboard({ game, run }: { game: GameId; run: RecordedRun | nu
         <p className="text-sm">This game ran too long to verify, so it is not submitted.</p>
       ) : null}
       {places && run && !shown ? <NameForm key={runKey} pending={pending} onSubmit={submit} /> : null}
+      {failed && !shown ? (
+        <p role="alert" className="text-sm text-destructive">
+          {failed}
+        </p>
+      ) : null}
       {shown ? <p className="text-sm">{shown}</p> : null}
     </section>
   )
@@ -102,7 +109,6 @@ function NameForm({ pending, onSubmit }: { pending: boolean; onSubmit: (name: st
       <Input
         id="score-name"
         value={draft}
-        maxLength={MAX_NAME_LENGTH}
         autoCapitalize="characters"
         autoComplete="off"
         spellCheck={false}

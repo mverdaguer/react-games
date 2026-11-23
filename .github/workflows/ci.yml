@@ -75,6 +75,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Set the production database id
+        env:
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_D1_DATABASE_ID" ]; then
+            echo "Set the CLOUDFLARE_D1_DATABASE_ID secret to the arcade database id."
+            exit 1
+          fi
+          placeholder="00000000-0000-0000-0000-000000000000"
+          if [ "$CLOUDFLARE_D1_DATABASE_ID" = "$placeholder" ]; then
+            echo "CLOUDFLARE_D1_DATABASE_ID is still the placeholder."
+            exit 1
+          fi
+          if ! printf '%s' "$CLOUDFLARE_D1_DATABASE_ID" | grep -Eq '^[0-9a-fA-F-]{36}$'; then
+            echo "CLOUDFLARE_D1_DATABASE_ID is not a database id."
+            exit 1
+          fi
+          if ! grep -q "$placeholder" wrangler.jsonc; then
+            echo "wrangler.jsonc is missing the database_id placeholder."
+            exit 1
+          fi
+          sed -i "s/$placeholder/$CLOUDFLARE_D1_DATABASE_ID/g" wrangler.jsonc
+
       - name: Download dist
         uses: actions/download-artifact@v8
         with:

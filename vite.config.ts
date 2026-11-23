@@ -19,8 +19,9 @@ export default defineConfig({
   server: process.env.VITEST
     ? {}
     : {
+        // `/api` and `/api/...` go to the Worker. `/apiary` stays with the SPA.
         proxy: {
-          "/api": "http://localhost:8787",
+          "^/api(?:/|$)": "http://localhost:8787",
         },
       },
   // Preview has no Worker. An empty proxy stops Vite from inheriting the dev

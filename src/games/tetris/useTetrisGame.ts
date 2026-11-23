@@ -431,6 +431,10 @@ export function useTetrisGame() {
 
   useEffect(() => {
     if (game.status !== "playing") return
+    if (customGravity()) {
+      const active = runRef.current
+      if (active) active.customSpeed = true
+    }
     const id = window.setInterval(onTick, gravityInterval(game.level))
     return () => window.clearInterval(id)
   }, [game.status, game.level])

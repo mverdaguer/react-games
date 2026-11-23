@@ -75,7 +75,14 @@ export type RecordedRun = {
 // Returns false once another entry would make the Worker reject the log.
 export function recordInput(game: GameId, log: LogEntry[], ticks: number, code: number): boolean {
   const rules = GAME_RULES[game]
-  if (ticks >= rules.maxTicks || log.length >= MAX_LOG_ENTRIES) return false
+  if (!Number.isInteger(ticks) || !Number.isInteger(code)) return false
+  if (ticks < 0 || ticks >= rules.maxTicks || code < 0 || code > rules.maxCode) return false
+  if (log.length >= MAX_LOG_ENTRIES) return false
+  const previous = log.at(-1)
+  if (previous) {
+    const [previousTick] = previous
+    if (rules.strictTicks ? ticks <= previousTick : ticks < previousTick) return false
+  }
   let sameTick = 0
   for (let index = log.length - 1; index >= 0 && log[index]?.[0] === ticks; index -= 1) {
     sameTick += 1
@@ -86,7 +93,7 @@ export function recordInput(game: GameId, log: LogEntry[], ticks: number, code: 
 }
 
 export function pastTickLimit(game: GameId, ticks: number): boolean {
-  return ticks >= GAME_RULES[game].maxTicks
+  return ticks > GAME_RULES[game].maxTicks
 }
 
 export type NameCheck =

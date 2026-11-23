@@ -21,3 +21,12 @@ CREATE TABLE runs (
   tick INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE run_results (
+  id TEXT PRIMARY KEY,
+  status TEXT NOT NULL,
+  score INTEGER,
+  rank INTEGER,
+  level INTEGER,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);

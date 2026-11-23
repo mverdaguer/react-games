@@ -31,11 +31,12 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-function stub(handler: (url: string) => Response) {
-  vi.stubGlobal("fetch", (input: RequestInfo | URL) => {
-    const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url
+function stub(handler: (request: Request) => Response | Promise<Response>) {
+  vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) => {
+    const request = new Request(input, init)
+    const url = request.url
     if (url.includes("/api/runs")) calls.push(url.includes("/continue") ? "continue" : "post")
-    return Promise.resolve(handler(url))
+    return Promise.resolve(handler(request))
   })
 }
 
@@ -87,21 +88,49 @@ test("does not ask when the board is full and the score only ties it", async () 
 
 test("submits the run and keeps checking until it is saved", async () => {
   let continued = 0
-  stub((url) => {
-    if (url.includes("/continue")) {
+  const posts: { method: string; url: string; body: unknown }[] = []
+  stub(async (request) => {
+    const url = new URL(request.url)
+    if (request.method === "POST" && url.pathname === "/api/runs") {
+      posts.push({ method: request.method, url: url.pathname, body: await request.json() })
+      return json({ status: "running", id: "run-1" }, 202)
+    }
+    if (request.method === "POST" && url.pathname === "/api/runs/run-1/continue") {
+      posts.push({ method: request.method, url: url.pathname, body: null })
       continued += 1
       if (continued === 1) return json({ status: "running", id: "run-1" })
       return json({ status: "saved", rank: 2, score: 12 }, 201)
     }
-    if (url.includes("/api/runs")) return json({ status: "running", id: "run-1" }, 202)
     return json({ scores: [] })
   })
 
   const screen = await render(<Leaderboard game="snake" run={run} />)
   await userEvent.fill(screen.getByRole("textbox", { name: "Initials" }), "Ada")
   await screen.getByRole("button", { name: "Submit" }).click()
-  await expect.element(screen.getByText("Saved. You are rank 2.")).toBeVisible()
+  await expect.element(screen.getByText("Saved at rank 2.")).toBeVisible()
+  expect(posts.map((post) => `${post.method} ${post.url}`)).toEqual([
+    "POST /api/runs",
+    "POST /api/runs/run-1/continue",
+    "POST /api/runs/run-1/continue",
+  ])
+  expect(posts[0]?.body).toMatchObject({ game: "snake", name: "ADA", claimed: 12, log: [[0, 0]] })
   expect(calls.filter((call) => call === "continue")).toHaveLength(2)
+})
+
+test("keeps the loaded scores when a submission cannot be checked", async () => {
+  stub((request) => {
+    if (request.method === "POST") return json({ error: "body" }, 400)
+    return json({ scores: [{ id: 1, name: "Ada", score: 4, level: 1 }] })
+  })
+  const screen = await render(<Leaderboard game="snake" run={run} />)
+  await expect.element(screen.getByText("1. Ada")).toBeVisible()
+  await userEvent.fill(screen.getByRole("textbox", { name: "Initials" }), "Ada")
+  await screen.getByRole("button", { name: "Submit" }).click()
+  await expect.element(screen.getByRole("alert")).toHaveTextContent(
+    "The leaderboard could not be reached. Try again.",
+  )
+  await expect.element(screen.getByText("1. Ada")).toBeVisible()
+  await expect.element(screen.getByRole("textbox", { name: "Initials" })).toBeVisible()
 })
 
 test("rejects a blocked name before sending it", async () => {

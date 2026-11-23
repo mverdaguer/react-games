@@ -37,6 +37,12 @@ describe("isAllowedName", () => {
     expect(isAllowedName("f-u-c-k")).toBe(false)
   })
 
+  it("blocks a stretched spelling and allows a shorter run of the same letters", () => {
+    expect(isAllowedName("ASS")).toBe(false)
+    expect(isAllowedName("ASSS")).toBe(false)
+    expect(isAllowedName("AAS")).toBe(true)
+  })
+
   it("blocks a long word hidden inside a longer name", () => {
     expect(isAllowedName("xxmierdaxx")).toBe(false)
     expect(isAllowedName("super bitch")).toBe(false)

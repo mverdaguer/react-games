@@ -144,19 +144,19 @@ Nothing is excluded. Axe still only checks what a machine can detect. The README
 
 ## Leaderboard
 
-Done. Snake, Tetris, and Pang share one top-ten board each on Cloudflare D1. The browser sends the seed and the input log. The Worker replays that log with the same `logic.ts` and stores the score the replay produces, and only when it beats the current tenth. A tie keeps the older row. Long games are replayed a few thousand steps at a time, because the free plan allows about 10 ms of CPU per request.
+Done. Snake, Tetris, and Pang share one top-ten board each on Cloudflare D1. The browser sends the seed and the input log. The Worker replays that log with the same `logic.ts` and stores the score the replay produces only when that score matches the claim. A board with room accepts it. A full board accepts it only when it beats the tenth, so a tie with the tenth keeps the older row. An equal score can still place when it beats the tenth, and equal scores rank the older one first. Long games are replayed a few thousand steps at a time, because the free plan allows about 10 ms of CPU per request.
 
 - [`leaderboard.ts`](../src/games/shared/leaderboard.ts) holds the games, the log rules, and the name rule: exactly 3 letters, stored in capitals.
-- [`name-filter.ts`](../src/games/shared/name-filter.ts) blocks rude names in English, Spanish, and Catalan. It folds case and accents, swaps digits back to letters, and collapses stretched letters. The form, `POST /api/runs`, and `GET /api/scores` all use it, so a word added later also drops older rows.
+- [`name-filter.ts`](../src/games/shared/name-filter.ts) blocks rude names in English, Spanish, and Catalan. It folds case and accents, swaps digits back to letters, and treats a longer run of the same letter as the blocked spelling. A shorter run does not match. The form, `POST /api/runs`, and `GET /api/scores` all use it, so a word added later also drops older rows.
 - Each game has a `replay.ts` with `begin` and `advance`. Node tests record a game with the real rules and replay it whole and one step at a time. Pang's test also round-trips a checkpoint through JSON.
 - [`useTetrisGame.ts`](../src/games/tetris/useTetrisGame.ts) still reads `tetris:gravity-ms` for the tests and the screenshots. A game played with that key is not submitted.
 - The panel says the leaderboard is unavailable when `/api/scores` is not JSON, which is what `pnpm preview` returns. The local best score stays.
-- [`wrangler.jsonc`](../wrangler.jsonc) runs the Worker only for `/api/*`. Replace `database_id` after `pnpm wrangler d1 create arcade`. The deploy job applies migrations first. The API token needs D1 edit permission.
+- [`wrangler.jsonc`](../wrangler.jsonc) runs the Worker for `/api` and `/api/*`. The database id in that file is a placeholder. After `pnpm wrangler d1 create arcade`, set the GitHub secret `CLOUDFLARE_D1_DATABASE_ID`. The deploy job writes it into the config before applying migrations. The API token needs D1 edit permission.
 
 **Done when**
 
 - [x] A recorded game replays to the same score in a Node test.
-- [x] A request with a tampered turn list is rejected or stored with the lower score it really produces.
+- [x] A request with a tampered turn list is rejected. Saving requires the replayed score to match the claim.
 - [x] A name that is not exactly 3 letters, or that the word list blocks, is rejected by the Worker.
 - [x] With the API unreachable, Snake still plays and the panel says the leaderboard is unavailable.
 - [x] The README says how scores are validated, what that does not prove, and how to delete a row.

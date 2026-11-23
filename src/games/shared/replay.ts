@@ -28,10 +28,11 @@ export function finishReplay<Game>(
   budget: number,
 ): AdvanceResult<Game> {
   let checkpoint = replay.begin(level, seed)
-  for (let guard = 0; guard < 10_000; guard += 1) {
-    const outcome = replay.advance(checkpoint, log, budget)
-    if (outcome.status !== "running") return outcome
+  let outcome = replay.advance(checkpoint, log, budget)
+  while (outcome.status === "running") {
+    if (outcome.checkpoint.tick <= checkpoint.tick) return { status: "rejected", reason: "stalled" }
     checkpoint = outcome.checkpoint
+    outcome = replay.advance(checkpoint, log, budget)
   }
-  return { status: "rejected", reason: "too long" }
+  return outcome
 }

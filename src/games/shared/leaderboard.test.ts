@@ -16,6 +16,7 @@ describe("checkName", () => {
   it("trims three letters and stores them in capitals", () => {
     expect(checkName("  ada ")).toEqual({ ok: true, name: "ADA" })
     expect(checkName("ñoé")).toEqual({ ok: true, name: "ÑOÉ" })
+    expect(checkName("AAS")).toEqual({ ok: true, name: "AAS" })
   })
 
   it("rejects the wrong length, a digit, and a blocked word", () => {
@@ -69,6 +70,12 @@ describe("parseLog", () => {
     expect(parseLog("pang", [[1, 1], [1, 2]])).toBeNull()
     expect(parseLog("pang", [[0, 8]])).toBeNull()
   })
+
+  it("accepts a tetris rotate and sixty-four actions on one tick", () => {
+    const tick = Array.from({ length: 64 }, () => [0, 4])
+    expect(parseLog("tetris", tick)).toEqual(tick)
+    expect(parseLog("tetris", [...tick, [0, 4]])).toBeNull()
+  })
 })
 
 describe("qualifies", () => {
@@ -91,7 +98,14 @@ describe("recordInput", () => {
       [0, 0],
       [0, 2],
     ])
-    expect(pastTickLimit("snake", 100_000)).toBe(true)
+    expect(pastTickLimit("snake", 100_000)).toBe(false)
+    expect(pastTickLimit("snake", 100_001)).toBe(true)
+    expect(pastTickLimit("pang", 216_000)).toBe(false)
     expect(recordInput("snake", [], 100_000, 0)).toBe(false)
+    const kept: [number, number][] = [[2, 0]]
+    expect(recordInput("snake", kept, 1, 0)).toBe(false)
+    expect(recordInput("snake", kept, 2, 9)).toBe(false)
+    expect(recordInput("pang", [[1, 1]], 1, 0)).toBe(false)
+    expect(kept).toEqual([[2, 0]])
   })
 })

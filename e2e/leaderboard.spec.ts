@@ -9,4 +9,8 @@ test("snake still plays when the leaderboard is unreachable", async ({ page }) =
 
   await main.getByRole("button", { name: "Start, 5" }).click()
   await expect(main.getByText("Walls wrap around. Press Space or 5 to pause.")).toBeVisible()
+
+  const head = main.locator("[data-head]")
+  const start = await head.getAttribute("data-head")
+  await expect.poll(async () => head.getAttribute("data-head")).not.toBe(start)
 })
