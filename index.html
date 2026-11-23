@@ -1,54 +1,59 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#ffffff" />
-    <title>Arcade</title>
-    <meta name="description" content="Six browser games written in React and TypeScript: Tetris, Snake, Pang, Minesweeper, Memory Match, and Tic-Tac-Toe." />
-    <meta name="author" content="Marc Verdaguer" />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Arcade" />
-    <meta property="og:title" content="Arcade: six browser games in React" />
-    <meta property="og:description" content="Six browser games written in React and TypeScript, with no game-engine library." />
-    <meta property="og:url" content="https://games.verdegang.workers.dev/" />
-    <meta property="og:image" content="https://games.verdegang.workers.dev/og.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="The Arcade shelf with six game cards" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <script>
-      ;(function () {
-        try {
-          var key = "arcade-theme:v1"
-          var theme = localStorage.getItem(key)
-          if (theme !== "light" && theme !== "dark" && theme !== "system") {
-            var legacy = localStorage.getItem("arcade-theme")
-            theme =
-              legacy === "light" || legacy === "dark" || legacy === "system"
-                ? legacy
-                : "system"
-            if (legacy === theme) {
-              localStorage.setItem(key, theme)
-              localStorage.removeItem("arcade-theme")
-            }
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Arcade</title>
+  <meta name="description"
+    content="Six browser games written in React and TypeScript: Tetris, Snake, Pang, Minesweeper, Memory Match, and Tic-Tac-Toe." />
+  <meta name="author" content="Marc Verdaguer" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Arcade" />
+  <meta property="og:title" content="Arcade: six browser games in React" />
+  <meta property="og:description"
+    content="Six browser games written in React and TypeScript, with no game-engine library." />
+  <meta property="og:url" content="https://games.mverdaguer.workers.dev/" />
+  <meta property="og:image" content="https://games.mverdaguer.workers.dev/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="The Arcade shelf with six game cards" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <script>
+    ; (function () {
+      try {
+        var key = "arcade-theme:v1"
+        var theme = localStorage.getItem(key)
+        if (theme !== "light" && theme !== "dark" && theme !== "system") {
+          var legacy = localStorage.getItem("arcade-theme")
+          theme =
+            legacy === "light" || legacy === "dark" || legacy === "system"
+              ? legacy
+              : "system"
+          if (legacy === theme) {
+            localStorage.setItem(key, theme)
+            localStorage.removeItem("arcade-theme")
           }
-          var dark =
-            theme === "dark" ||
-            (theme === "system" &&
-              window.matchMedia("(prefers-color-scheme: dark)").matches)
-          var root = document.documentElement
-          root.classList.add(dark ? "dark" : "light")
-          root.style.colorScheme = dark ? "dark" : "light"
-          var meta = document.querySelector('meta[name="theme-color"]')
-          if (meta) meta.setAttribute("content", dark ? "#252525" : "#ffffff")
-        } catch (e) {}
-      })()
-    </script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+        }
+        var dark =
+          theme === "dark" ||
+          (theme === "system" &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches)
+        var root = document.documentElement
+        root.classList.add(dark ? "dark" : "light")
+        root.style.colorScheme = dark ? "dark" : "light"
+        var meta = document.querySelector('meta[name="theme-color"]')
+        if (meta) meta.setAttribute("content", dark ? "#252525" : "#ffffff")
+      } catch (e) { }
+    })()
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

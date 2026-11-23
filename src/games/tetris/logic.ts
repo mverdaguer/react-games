@@ -343,6 +343,23 @@ export function rotate(game: Game, dir: "cw" | "ccw"): Game {
   return { ...game, active }
 }
 
+export type Action = "left" | "right" | "down" | "cw" | "ccw"
+
+export function apply(game: Game, action: Action): Game {
+  switch (action) {
+    case "left":
+      return move(game, -1)
+    case "right":
+      return move(game, 1)
+    case "down":
+      return softDrop(game)
+    case "cw":
+      return rotate(game, "cw")
+    case "ccw":
+      return rotate(game, "ccw")
+  }
+}
+
 export function softDrop(game: Game): Game {
   if (game.status !== "playing") return game
   const active = { ...game.active, y: game.active.y + 1 }

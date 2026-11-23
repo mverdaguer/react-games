@@ -8,6 +8,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "wrangler d1 migrations apply arcade --local && wrangler dev",
+    "bench": "node scripts/bench-replay.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
@@ -30,6 +32,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
+    "@cloudflare/workers-types": "^5.20261119.1",
     "@playwright/test": "^1.65.1",
     "@tailwindcss/vite": "^4.3.5",
     "@types/node": "^24.19.2",

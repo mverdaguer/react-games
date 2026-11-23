@@ -11,13 +11,31 @@ export default defineConfig({
       "@": resolve(import.meta.dirname, "src"),
     },
   },
+  // Prebundle these so the browser test server does not reload mid-run.
+  // A reload on CI left the Pang iframe uninitialized until its 60s timeout.
+  optimizeDeps: {
+    include: ["react-dom/client", "react-router", "vitest-browser-react"],
+  },
+  server: process.env.VITEST
+    ? {}
+    : {
+        // `/api`, `/api/...`, and `/api?...` go to the Worker. `/apiary` stays with the SPA.
+        proxy: {
+          "^/api(?:[/?]|$)": "http://localhost:8787",
+        },
+      },
+  // Preview has no Worker. An empty proxy stops Vite from inheriting the dev
+  // proxy, so /api falls through to index.html and the panel shows unavailable.
+  preview: {
+    proxy: {},
+  },
   test: {
     projects: [
       {
         test: {
           name: "unit",
           environment: "node",
-          include: ["src/**/*.test.ts"],
+          include: ["src/**/*.test.ts", "worker/**/*.test.ts"],
         },
       },
       {

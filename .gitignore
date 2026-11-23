@@ -24,6 +24,7 @@ dist-ssr
 *.sw?
 
 .wrangler
+wrangler.production.jsonc
 .dev.vars*
 
 .vitest
