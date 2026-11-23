@@ -28,6 +28,10 @@ export async function handle(request: Request, env: Env): Promise<Response> {
     return runResponse(result)
   }
 
+  if (request.method === "GET" && !url.pathname.startsWith("/api/") && env.ASSETS) {
+    return env.ASSETS.fetch(new Request(new URL("/index.html", url), request))
+  }
+
   return json({ error: "not found" }, 404)
 }
 

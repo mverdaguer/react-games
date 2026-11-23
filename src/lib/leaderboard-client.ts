@@ -16,6 +16,7 @@ export type SubmitResult =
   | { status: "unavailable" }
 
 const CONTINUE_LIMIT = 200
+const CONTINUE_FETCH_ATTEMPTS = 3
 
 export async function fetchScores(game: GameId): Promise<BoardResult> {
   try {
@@ -51,7 +52,7 @@ export async function submitRun(run: RecordedRun, name: string): Promise<SubmitR
     if (body.status === "not-placed") return { status: "not-placed" }
     if (body.status === "rejected") return { status: "rejected" }
     if (body.status !== "running" || typeof body.id !== "string") return { status: "unavailable" }
-    return continueUntilDone(body.id)
+    return await continueUntilDone(body.id)
   } catch {
     return { status: "unavailable" }
   }
@@ -59,7 +60,16 @@ export async function submitRun(run: RecordedRun, name: string): Promise<SubmitR
 
 async function continueUntilDone(id: string): Promise<SubmitResult> {
   for (let step = 0; step < CONTINUE_LIMIT; step += 1) {
-    const response = await fetch(`/api/runs/${id}/continue`, { method: "POST" })
+    let response: Response | undefined
+    for (let attempt = 1; attempt <= CONTINUE_FETCH_ATTEMPTS; attempt += 1) {
+      try {
+        response = await fetch(`/api/runs/${id}/continue`, { method: "POST" })
+        break
+      } catch {
+        if (attempt === CONTINUE_FETCH_ATTEMPTS) return { status: "unavailable" }
+      }
+    }
+    if (!response) return { status: "unavailable" }
     const body = await readJson(response)
     if (!body || typeof body !== "object" || !("status" in body) || typeof body.status !== "string") {
       return { status: "unavailable" }

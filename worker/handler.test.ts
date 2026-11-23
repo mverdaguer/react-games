@@ -1,10 +1,12 @@
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
+import { dirname, join } from "node:path"
 import { DatabaseSync } from "node:sqlite"
+import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 
 import { handle } from "./index"
 
-const MIGRATION = readFileSync(new URL("../migrations/0001_scores.sql", import.meta.url), "utf8")
+const MIGRATIONS = join(dirname(fileURLToPath(import.meta.url)), "../migrations")
 
 const CRASH_LOG = [
   [0, 0],
@@ -14,11 +16,15 @@ const CRASH_LOG = [
 
 function database(): D1Database {
   const db = new DatabaseSync(":memory:")
-  db.exec(MIGRATION)
+  const files = readdirSync(MIGRATIONS)
+    .filter((name) => name.endsWith(".sql"))
+    .sort()
+  for (const name of files) db.exec(readFileSync(join(MIGRATIONS, name), "utf8"))
   return {
     prepare(query: string) {
       let binds: unknown[] = []
       const statement = {
+        query,
         bind(...values: unknown[]) {
           binds = values
           return statement
@@ -33,6 +39,7 @@ function database(): D1Database {
         async run() {
           const info = db.prepare(query).run(...(binds as never[]))
           return {
+            results: [],
             meta: { changes: Number(info.changes), last_row_id: Number(info.lastInsertRowid) },
           }
         },
@@ -43,7 +50,15 @@ function database(): D1Database {
       db.exec("BEGIN")
       try {
         const results = []
-        for (const statement of statements) results.push(await statement.run())
+        for (const statement of statements) {
+          const prepared = statement as D1PreparedStatement & { query?: string }
+          if (prepared.query && /^\s*SELECT\b/i.test(prepared.query)) {
+            const selected = await prepared.all()
+            results.push({ results: selected.results, meta: { changes: 0, last_row_id: 0 } })
+          } else {
+            results.push(await prepared.run())
+          }
+        }
         db.exec("COMMIT")
         return results
       } catch (error) {
@@ -187,5 +202,83 @@ describe("scores api", () => {
     const response = await handle(new Request("https://games.local/api/scores?game=snake"), { DB: db })
     const body = (await response.json()) as { scores: { name: string }[] }
     expect(body.scores.map((row) => row.name)).toEqual(["Ada"])
+  })
+
+  it("does not let a blocked name occupy a board slot", async () => {
+    const db = database()
+    for (let index = 0; index < 9; index += 1) {
+      await db
+        .prepare("INSERT INTO scores (game, level, name, score) VALUES (?, ?, ?, ?)")
+        .bind("snake", 1, "Old", 0)
+        .run()
+    }
+    await db
+      .prepare("INSERT INTO scores (game, level, name, score) VALUES (?, ?, ?, ?)")
+      .bind("snake", 1, "shit", 100)
+      .run()
+
+    const created = await post(db, "/api/runs", {
+      game: "snake",
+      level: 1,
+      name: "Ada",
+      seed: 1,
+      claimed: 0,
+      log: CRASH_LOG,
+    })
+    expect(created.status).toBe(202)
+    const { id } = (await created.json()) as { id: string }
+    const finished = await settle(db, id)
+    expect(finished.status).toBe(201)
+    expect(await finished.json()).toMatchObject({ status: "saved", score: 0, rank: 10 })
+
+    const count = await db.prepare("SELECT COUNT(*) AS count FROM scores").first<{ count: number }>()
+    expect(count?.count).toBe(10)
+    const listed = await handle(new Request("https://games.local/api/scores?game=snake"), { DB: db })
+    const body = (await listed.json()) as { scores: { name: string }[] }
+    expect(body.scores.map((row) => row.name)).not.toContain("shit")
+    expect(body.scores.some((row) => row.name === "ADA")).toBe(true)
+  })
+
+  it("returns the saved receipt when the same run is continued again", async () => {
+    const db = database()
+    const created = await post(db, "/api/runs", {
+      game: "snake",
+      level: 1,
+      name: "Ada",
+      seed: 1,
+      claimed: 0,
+      log: CRASH_LOG,
+    })
+    const { id } = (await created.json()) as { id: string }
+    const finished = await settle(db, id)
+    expect(finished.status).toBe(201)
+    const saved = (await finished.json()) as { status: string; score: number; rank: number; level: number }
+
+    const again = await post(db, `/api/runs/${id}/continue`)
+    expect(again.status).toBe(201)
+    expect(await again.json()).toEqual(saved)
+
+    const count = await db.prepare("SELECT COUNT(*) AS count FROM scores").first<{ count: number }>()
+    expect(count?.count).toBe(1)
+  })
+
+  it("does not replay a run older than an hour", async () => {
+    const db = database()
+    const created = await post(db, "/api/runs", {
+      game: "snake",
+      level: 1,
+      name: "Ada",
+      seed: 1,
+      claimed: 0,
+      log: CRASH_LOG,
+    })
+    const { id } = (await created.json()) as { id: string }
+    await db.prepare("UPDATE runs SET created_at = datetime('now', '-2 hours') WHERE id = ?").bind(id).run()
+
+    const continued = await post(db, `/api/runs/${id}/continue`)
+    expect(continued.status).toBe(404)
+    expect(await continued.json()).toEqual({ error: "missing" })
+    const count = await db.prepare("SELECT COUNT(*) AS count FROM scores").first<{ count: number }>()
+    expect(count?.count).toBe(0)
   })
 })

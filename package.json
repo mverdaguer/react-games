@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:api": "wrangler dev",
+    "dev:api": "wrangler d1 migrations apply arcade --local && wrangler dev",
     "bench": "node scripts/bench-replay.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
