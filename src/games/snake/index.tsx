@@ -1,6 +1,7 @@
 import { Minus, Plus, Volume2, VolumeX } from "lucide-react"
 
 import { GameShell } from "@/components/GameShell"
+import { Leaderboard } from "@/components/Leaderboard"
 import { Button } from "@/components/ui/button"
 import { Device } from "@/games/snake/Device"
 import { Keypad } from "@/games/snake/Keypad"
@@ -38,7 +39,8 @@ function statusText(status: Status, score: number, isNewBest: boolean) {
 }
 
 export default function Snake() {
-  const { game, settings, bestScores, newBest, steer, primary, setLevel, toggleSound } = useSnakeGame()
+  const { game, settings, bestScores, newBest, run, steer, primary, setLevel, toggleSound } =
+    useSnakeGame()
   const best = bestScores[settings.level]
   const label = primaryLabel(game.status)
 
@@ -102,6 +104,7 @@ export default function Snake() {
         <p className="text-sm font-medium" aria-live="polite">
           {statusText(game.status, game.score, newBest)}
         </p>
+        <Leaderboard game="snake" run={run} />
       </div>
     </GameShell>
   )

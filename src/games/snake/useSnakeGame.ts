@@ -1,5 +1,7 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react"
 
+import { SNAKE_DIRECTIONS, type RecordedRun } from "@/games/shared/leaderboard"
+import type { LogEntry } from "@/games/shared/replay"
 import {
   createGame,
   pause,
@@ -21,6 +23,17 @@ import {
 
 function newSeed() {
   return Math.floor(Math.random() * 2 ** 32)
+}
+
+type RunLog = {
+  level: Level
+  seed: number
+  log: LogEntry[]
+  ticks: number
+}
+
+function directionCode(dir: Direction): number {
+  return SNAKE_DIRECTIONS.indexOf(dir)
 }
 
 function numpadDirection(code: string): Direction | null {
@@ -87,10 +100,30 @@ export function useSnakeGame() {
   const [settings, setSettings] = useState(loadSettings)
   const [bestScores, setBestScores] = useState(loadBestScores)
   const [newBest, setNewBest] = useState(false)
-  const [game, setGame] = useState(() => createGame(settings.level, newSeed()))
+  const [log] = useState<RunLog>(() => ({
+    level: settings.level,
+    seed: newSeed(),
+    log: [],
+    ticks: 0,
+  }))
+  const runRef = useRef(log)
+  const [run, setRun] = useState<RecordedRun | null>(null)
+  const [game, setGame] = useState(() => createGame(log.level, log.seed))
   const gameRef = useRef(game)
   const settingsRef = useRef(settings)
   const bestScoresRef = useRef(bestScores)
+
+  function startRun(level: Level) {
+    const seed = newSeed()
+    runRef.current = { level, seed, log: [], ticks: 0 }
+    return createGame(level, seed)
+  }
+
+  function noteTurn(dir: Direction) {
+    const run = runRef.current
+    if (!run) return
+    run.log.push([run.ticks, directionCode(dir)])
+  }
 
   function commit(next: Game) {
     const prev = gameRef.current
@@ -103,6 +136,17 @@ export function useSnakeGame() {
     }
 
     if ((next.status === "over" || next.status === "won") && prev.status === "playing") {
+      const recorded = runRef.current
+      if (recorded) {
+        setRun({
+          game: "snake",
+          level: recorded.level,
+          seed: recorded.seed,
+          score: next.score,
+          log: recorded.log.slice(),
+          ranked: true,
+        })
+      }
       if (settingsRef.current.sound) playSound("die")
       const previous = bestScoresRef.current[next.level]
       const scores = saveBestScore(next.level, next.score)
@@ -118,10 +162,12 @@ export function useSnakeGame() {
     const turned = queueTurn(current, dir)
     if (current.status === "playing") {
       if (turned === current) return
+      noteTurn(dir)
       commit(turned)
       return
     }
     if (current.status === "ready" || current.status === "paused") {
+      if (turned !== current) noteTurn(dir)
       commit(start(turned))
     }
   }
@@ -137,7 +183,8 @@ export function useSnakeGame() {
       return
     }
     setNewBest(false)
-    commit(start(createGame(current.level, newSeed())))
+    setRun(null)
+    commit(start(startRun(current.level)))
   }
 
   function pauseGame() {
@@ -151,7 +198,8 @@ export function useSnakeGame() {
     settingsRef.current = next
     setSettings(next)
     setNewBest(false)
-    commit(createGame(level, newSeed()))
+    setRun(null)
+    commit(startRun(level))
   }
 
   function toggleSound() {
@@ -162,7 +210,12 @@ export function useSnakeGame() {
   }
 
   const onTick = useEffectEvent(() => {
-    commit(step(gameRef.current))
+    const current = gameRef.current
+    if (current.status === "playing") {
+      const run = runRef.current
+      if (run) run.ticks += 1
+    }
+    commit(step(current))
   })
 
   const onAutoPause = useEffectEvent(() => {
@@ -236,5 +289,5 @@ export function useSnakeGame() {
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [])
 
-  return { game, settings, bestScores, newBest, steer, primary, pauseGame, setLevel, toggleSound }
+  return { game, settings, bestScores, newBest, run, steer, primary, pauseGame, setLevel, toggleSound }
 }

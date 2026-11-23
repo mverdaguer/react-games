@@ -1,6 +1,7 @@
 import { Volume2, VolumeX } from "lucide-react"
 
 import { GameShell } from "@/components/GameShell"
+import { Leaderboard } from "@/components/Leaderboard"
 import { Button } from "@/components/ui/button"
 import { Cabinet } from "@/games/pang/Cabinet"
 import type { Status } from "@/games/pang/logic"
@@ -41,7 +42,7 @@ function statusText(status: Status, score: number, level: number, isNewBest: boo
 }
 
 export default function Pang() {
-  const { game, settings, best, newBest, holdMove, holdFire, primary, onScreen, toggleSound } =
+  const { game, settings, best, newBest, run, holdMove, holdFire, primary, onScreen, toggleSound } =
     usePangGame()
 
   return (
@@ -79,6 +80,7 @@ export default function Pang() {
         <p className="text-sm font-medium" aria-live="polite">
           {statusText(game.status, game.score, game.level, newBest)}
         </p>
+        <Leaderboard game="pang" run={run} />
       </div>
     </GameShell>
   )

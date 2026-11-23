@@ -33,7 +33,7 @@ Live demo: [games.verdegang.workers.dev](https://games.verdegang.workers.dev)
 - Each game has its own URL and loads only when you open it.
 - Moving between the shelf and a game, or from one game to another, animates with the View Transition API.
 - Three test layers: Node unit tests, component tests in a real browser, and Playwright against the production build.
-- Sound is synthesized in the browser. The site is static files on Cloudflare Workers.
+- Sound is synthesized in the browser. The pages are static files on Cloudflare Workers. Snake, Tetris, and Pang also post scores to a Worker backed by D1.
 
 ## Architecture
 
@@ -61,19 +61,27 @@ flowchart LR
 - **The theme is painted before the first frame.** An inline script in [`index.html`](index.html) reads the saved theme and sets the document class before React loads, so the page does not flash the wrong colors. The Content Security Policy in [`public/_headers`](public/_headers) allows that script by its hash and nothing else inline.
 - **Saved data uses versioned keys.** Scores and settings live under keys like `snake:best-scores:v1`. The theme provider still reads the old `arcade-theme` key and moves it to `arcade-theme:v1`.
 - **No audio files.** Snake, Tetris, and Pang build their sounds with the Web Audio API when you turn sound on.
-- **Static hosting.** [`wrangler.jsonc`](wrangler.jsonc) serves `dist` from Cloudflare Workers and falls back to the app for unknown paths, so a game URL works on refresh. [`public/_headers`](public/_headers) adds the security headers. Deploys run from GitHub Actions after CI passes on main.
+- **Static hosting, with one Worker for scores.** [`wrangler.jsonc`](wrangler.jsonc) serves `dist` from Cloudflare Workers and falls back to the app for unknown paths, so a game URL works on refresh. Only `/api/*` runs the Worker. [`public/_headers`](public/_headers) adds the security headers. Deploys run from GitHub Actions after CI passes on main, and the deploy applies the D1 migrations first.
+- **A score is the replay, not the number the browser sends.** Snake, Tetris, and Pang record the seed and the inputs. The Worker runs the same `logic.ts` and stores the score that comes out. A long game is replayed in chunks, a few thousand steps per request, so it stays inside the free plan's CPU limit. Each game keeps ten rows. A new score is stored only when it beats the tenth, and a tie leaves the older score in place. This shows the moves were legal. It does not show that a person played them: a bot, or a browser slowed down on purpose, still produces a valid log. The daily request quota is shared by everyone who can reach the site. The D1 database id in [`wrangler.jsonc`](wrangler.jsonc) is a placeholder until you run `pnpm wrangler d1 create arcade` and paste the id it prints.
 
 ## Trade-offs and what's next
 
 - End-to-end tests run in Chromium only.
-- Scores and settings are stored per browser in `localStorage`. There is no global leaderboard yet.
+- The best score on this device still lives in `localStorage`. It works when the leaderboard does not.
+- Names are exactly 3 letters, stored in capitals. A shared word list blocks rude names in English, Spanish, and Catalan, including simple disguises such as accents, digit swaps, and stretched letters. It misses spellings and languages it does not know. To remove a row, list them and delete by id:
+
+  ```bash
+  pnpm wrangler d1 execute arcade --remote --command "SELECT id, game, name, score FROM scores"
+  pnpm wrangler d1 execute arcade --remote --command "DELETE FROM scores WHERE id = 42"
+  ```
+
 - Axe runs in the end-to-end tests, on every route, in light and dark. It checks contrast, names, and ARIA. It does not check that a game is playable by keyboard.
-- What's next: a Snake leaderboard on Cloudflare D1.
 
 ## Scripts
 
 ```bash
 pnpm dev         # start the dev server
+pnpm dev:api     # start the Worker beside it (needs a build in dist/)
 pnpm build       # typecheck and build for production
 pnpm preview     # serve the production build
 pnpm lint        # run oxlint
@@ -81,6 +89,7 @@ pnpm test        # run unit and component tests once
 pnpm test:watch  # run unit and component tests in watch mode
 pnpm test:e2e    # run Playwright against the production preview
 pnpm screenshots # rebuild the README images
+pnpm bench       # time one replay chunk of Snake, Tetris, and Pang
 ```
 
 ## Tests

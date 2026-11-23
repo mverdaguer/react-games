@@ -1,5 +1,7 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react"
 
+import { type RecordedRun } from "@/games/shared/leaderboard"
+import type { LogEntry } from "@/games/shared/replay"
 import {
   createGame,
   pause,
@@ -8,6 +10,7 @@ import {
   type Game,
   type Input,
 } from "@/games/pang/logic"
+import { maskFromInput } from "@/games/pang/replay"
 import { playSound } from "@/games/pang/sound"
 import {
   loadBest,
@@ -27,6 +30,15 @@ const IDLE_INPUT: Input = { left: false, right: false, fire: false }
 function newSeed() {
   return Math.floor(Math.random() * 2 ** 32)
 }
+
+type RunLog = {
+  seed: number
+  log: LogEntry[]
+  ticks: number
+  mask: number
+}
+
+const COUNTED = new Set<Game["status"]>(["playing", "dying", "cleared"])
 
 function isFieldTarget(target: EventTarget | null) {
   return (
@@ -74,7 +86,10 @@ export function usePangGame() {
   const [settings, setSettings] = useState(loadSettings)
   const [best, setBest] = useState<Best | null>(loadBest)
   const [newBest, setNewBest] = useState(false)
-  const [game, setGame] = useState(() => createGame(newSeed()))
+  const [log] = useState<RunLog>(() => ({ seed: newSeed(), log: [], ticks: 0, mask: 0 }))
+  const runRef = useRef(log)
+  const [run, setRun] = useState<RecordedRun | null>(null)
+  const [game, setGame] = useState(() => createGame(log.seed))
   const gameRef = useRef(game)
   const settingsRef = useRef(settings)
   const bestRef = useRef(best)
@@ -83,6 +98,12 @@ export function usePangGame() {
   const keyboardFocusRef = useRef(false)
   const movePulseRef = useRef({ left: false, right: false })
   const clockRef = useRef({ last: 0, acc: 0 })
+
+  function startRun() {
+    const seed = newSeed()
+    runRef.current = { seed, log: [], ticks: 0, mask: 0 }
+    return createGame(seed)
+  }
 
   function releaseInput() {
     inputRef.current = { ...IDLE_INPUT }
@@ -115,6 +136,17 @@ export function usePangGame() {
     }
 
     if (next.status === "over" && prev.status !== "over") {
+      const recorded = runRef.current
+      if (recorded) {
+        setRun({
+          game: "pang",
+          level: next.level,
+          seed: recorded.seed,
+          score: next.score,
+          log: recorded.log.slice(),
+          ranked: true,
+        })
+      }
       const previous = bestRef.current
       const scores = saveBest(next.score, next.level)
       bestRef.current = scores
@@ -146,7 +178,8 @@ export function usePangGame() {
     if (current.status === "over") {
       setNewBest(false)
       releaseInput()
-      commit(start(createGame(newSeed())))
+      setRun(null)
+      commit(start(startRun()))
     }
   }
 
@@ -180,6 +213,15 @@ export function usePangGame() {
     let next = gameRef.current
     let guard = 0
     while (clock.acc >= STEP_MS && guard < MAX_STEPS) {
+      if (COUNTED.has(next.status)) {
+        const run = runRef.current
+        const mask = maskFromInput(input)
+        if (run && mask !== run.mask) {
+          run.log.push([run.ticks, mask])
+          run.mask = mask
+        }
+        if (run) run.ticks += 1
+      }
       next = step(next, input)
       clock.acc -= STEP_MS
       guard += 1
@@ -298,6 +340,7 @@ export function usePangGame() {
   }, [])
 
   return {
+    run,
     game,
     settings,
     best,

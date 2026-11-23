@@ -11,13 +11,25 @@ export default defineConfig({
       "@": resolve(import.meta.dirname, "src"),
     },
   },
+  server: process.env.VITEST
+    ? {}
+    : {
+        proxy: {
+          "/api": "http://localhost:8787",
+        },
+      },
+  // Preview has no Worker. An empty proxy stops Vite from inheriting the dev
+  // proxy, so /api falls through to index.html and the panel shows unavailable.
+  preview: {
+    proxy: {},
+  },
   test: {
     projects: [
       {
         test: {
           name: "unit",
           environment: "node",
-          include: ["src/**/*.test.ts"],
+          include: ["src/**/*.test.ts", "worker/**/*.test.ts"],
         },
       },
       {

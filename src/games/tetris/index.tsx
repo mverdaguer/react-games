@@ -1,6 +1,7 @@
 import { Minus, Plus, Volume2, VolumeX } from "lucide-react"
 
 import { GameShell } from "@/components/GameShell"
+import { Leaderboard } from "@/components/Leaderboard"
 import { Button } from "@/components/ui/button"
 import { Device } from "@/games/tetris/Device"
 import type { Status } from "@/games/tetris/logic"
@@ -49,6 +50,7 @@ export default function Tetris() {
     onDrag,
     setStartLevel,
     toggleSound,
+    run,
   } = useTetrisGame()
   const best = bestScores[settings.startLevel]
 
@@ -113,6 +115,7 @@ export default function Tetris() {
         <p className="text-sm font-medium" aria-live="polite">
           {statusText(game.status, game.score, newBest)}
         </p>
+        <Leaderboard game="tetris" run={run} />
       </div>
     </GameShell>
   )

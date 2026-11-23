@@ -1,14 +1,15 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react"
 
+import { TETRIS_ACTIONS, type RecordedRun } from "@/games/shared/leaderboard"
+import type { LogEntry } from "@/games/shared/replay"
 import {
+  apply,
   createGame,
   gravityMs,
-  move,
   pause,
-  rotate as rotatePiece,
-  softDrop,
   start,
   tick,
+  type Action,
   type Game,
 } from "@/games/tetris/logic"
 import { playSound } from "@/games/tetris/sound"
@@ -36,6 +37,29 @@ type RepeatSlot = {
 
 function newSeed() {
   return Math.floor(Math.random() * 2 ** 32)
+}
+
+type RunLog = {
+  level: StartLevel
+  seed: number
+  log: LogEntry[]
+  ticks: number
+  ranked: boolean
+}
+
+function customGravity(): boolean {
+  try {
+    const raw = localStorage.getItem("tetris:gravity-ms")
+    if (!raw) return false
+    const parsed = Number(raw)
+    return Number.isFinite(parsed) && parsed >= 10 && parsed <= 1000
+  } catch {
+    return false
+  }
+}
+
+function actionCode(action: Action): number {
+  return TETRIS_ACTIONS.indexOf(action)
 }
 
 function gravityInterval(level: number): number {
@@ -162,12 +186,34 @@ export function useTetrisGame() {
   const [settings, setSettings] = useState(loadSettings)
   const [bestScores, setBestScores] = useState(loadBestScores)
   const [newBest, setNewBest] = useState(false)
-  const [game, setGame] = useState(() => createGame(settings.startLevel, newSeed()))
+  const [log] = useState<RunLog>(() => ({
+    level: settings.startLevel,
+    seed: newSeed(),
+    log: [],
+    ticks: 0,
+    ranked: !customGravity(),
+  }))
+  const runRef = useRef(log)
+  const [run, setRun] = useState<RecordedRun | null>(null)
+  const [game, setGame] = useState(() => createGame(log.level, log.seed))
   const gameRef = useRef(game)
   const settingsRef = useRef(settings)
   const bestScoresRef = useRef(bestScores)
   const horizontalRef = useRef(createSlot())
   const downRef = useRef(createSlot())
+
+  function startRun(level: StartLevel) {
+    const seed = newSeed()
+    runRef.current = { level, seed, log: [], ticks: 0, ranked: !customGravity() }
+    return createGame(level, seed)
+  }
+
+  function noteAction(before: Game, after: Game, action: Action) {
+    if (before === after || before.status !== "playing") return
+    const run = runRef.current
+    if (!run) return
+    run.log.push([run.ticks, actionCode(action)])
+  }
 
   function releaseHolds() {
     clearSlot(horizontalRef.current)
@@ -187,6 +233,17 @@ export function useTetrisGame() {
     }
 
     if (next.status === "over" && prev.status === "playing" && isStartLevel(next.startLevel)) {
+      const recorded = runRef.current
+      if (recorded) {
+        setRun({
+          game: "tetris",
+          level: recorded.level,
+          seed: recorded.seed,
+          score: next.score,
+          log: recorded.log.slice(),
+          ranked: recorded.ranked && !customGravity(),
+        })
+      }
       const previous = bestScoresRef.current[next.startLevel]
       const scores = saveBestScore(next.startLevel, next.score)
       bestScoresRef.current = scores
@@ -198,7 +255,9 @@ export function useTetrisGame() {
   function applyHold(dir: HoldDir) {
     const current = gameRef.current
     if (current.status !== "playing") return
-    const next = dir === "left" ? move(current, -1) : dir === "right" ? move(current, 1) : softDrop(current)
+    const action: Action = dir === "left" ? "left" : dir === "right" ? "right" : "down"
+    const next = apply(current, action)
+    noteAction(current, next, action)
     if (dir !== "down" && next !== current && settingsRef.current.sound) playSound("move")
     commit(next)
   }
@@ -217,7 +276,8 @@ export function useTetrisGame() {
   function rotate(dir: RotateDir) {
     const current = gameRef.current
     if (current.status !== "playing") return
-    const next = rotatePiece(current, dir)
+    const next = apply(current, dir)
+    noteAction(current, next, dir)
     if (next !== current && settingsRef.current.sound) playSound("rotate")
     commit(next)
   }
@@ -233,7 +293,8 @@ export function useTetrisGame() {
       return
     }
     setNewBest(false)
-    commit(start(createGame(settingsRef.current.startLevel, newSeed())))
+    setRun(null)
+    commit(start(startRun(settingsRef.current.startLevel)))
   }
 
   function pauseGame() {
@@ -254,18 +315,21 @@ export function useTetrisGame() {
     const rowSteps = dragSteps(delta.rows)
     if (columnSteps === 0 && rowSteps === 0) return
 
-    const direction: -1 | 1 = delta.columns < 0 ? -1 : 1
+    const direction: Action = delta.columns < 0 ? "left" : "right"
     let next = gameRef.current
     let moved = false
     for (let step = 0; step < columnSteps; step += 1) {
       if (next.status !== "playing") break
-      const shifted = move(next, direction)
+      const shifted = apply(next, direction)
+      noteAction(next, shifted, direction)
       if (shifted !== next) moved = true
       next = shifted
     }
     for (let step = 0; step < rowSteps; step += 1) {
       if (next.status !== "playing") break
-      next = softDrop(next)
+      const dropped = apply(next, "down")
+      noteAction(next, dropped, "down")
+      next = dropped
     }
     if (moved && settingsRef.current.sound) playSound("move")
     commit(next)
@@ -277,7 +341,8 @@ export function useTetrisGame() {
     settingsRef.current = next
     setSettings(next)
     setNewBest(false)
-    commit(createGame(level, newSeed()))
+    setRun(null)
+    commit(startRun(level))
   }
 
   function togglePreview() {
@@ -295,7 +360,12 @@ export function useTetrisGame() {
   }
 
   const onTick = useEffectEvent(() => {
-    commit(tick(gameRef.current))
+    const current = gameRef.current
+    if (current.status === "playing") {
+      const run = runRef.current
+      if (run) run.ticks += 1
+    }
+    commit(tick(current))
   })
 
   const onAutoPause = useEffectEvent(() => {
@@ -390,6 +460,7 @@ export function useTetrisGame() {
   }, [])
 
   return {
+    run,
     game,
     settings,
     bestScores,
