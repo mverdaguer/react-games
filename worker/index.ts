@@ -41,8 +41,9 @@ export async function handle(request: Request, env: ApiEnv): Promise<Response> {
 }
 
 async function submit(request: Request, env: ApiEnv): Promise<Response> {
-  const text = await request.text()
-  if (text.length > MAX_BODY_BYTES) return json({ error: "body" }, 413)
+  const body = await readBody(request)
+  if (!body.ok) return json({ error: "body" }, 413)
+  const text = body.text
   let parsed: unknown
   try {
     parsed = JSON.parse(text)
@@ -73,6 +74,25 @@ function runResponse(result: RunResult): Response {
       return json({ error: "missing" }, 404)
     case "conflict":
       return json({ status: "conflict" }, 409)
+  }
+}
+
+async function readBody(request: Request): Promise<{ ok: true; text: string } | { ok: false }> {
+  const reader = request.body?.getReader()
+  if (!reader) return { ok: true, text: "" }
+  const decoder = new TextDecoder()
+  let text = ""
+  let received = 0
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) return { ok: true, text: text + decoder.decode() }
+    if (!value) continue
+    received += value.byteLength
+    if (received > MAX_BODY_BYTES) {
+      await reader.cancel()
+      return { ok: false }
+    }
+    text += decoder.decode(value, { stream: true })
   }
 }
 

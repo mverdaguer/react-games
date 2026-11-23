@@ -165,6 +165,7 @@ export async function continueRun(db: D1Database, id: string): Promise<RunResult
   const row = await db.prepare(READ_RUN).bind(id, clock.freshAfter).first<RunRow>()
   if (!row) return finishedRun(db, id)
   if (!isGameId(row.game)) return { status: "missing" }
+  if (!isAllowedName(row.name)) return rejectRun(db, id, row.tick, clock)
   const log = parseStoredLog(row.log)
   if (!log) return rejectRun(db, id, row.tick, clock)
 
@@ -211,8 +212,9 @@ async function saveRun(
   ])
   const inserted = finished[2]
   const removed = finished[5]
-  if (!inserted || !removed) return { status: "conflict" }
-  if (inserted.meta.changes === 0 && removed.meta.changes === 0) return { status: "conflict" }
+  if (!inserted || !removed || (inserted.meta.changes === 0 && removed.meta.changes === 0)) {
+    return outcomeOrConflict(db, row.id)
+  }
   if (inserted.meta.changes === 0) return { status: "not-placed" }
   return { status: "saved", score, rank: rankFrom(finished[4]), level }
 }
@@ -223,8 +225,13 @@ async function rejectRun(db: D1Database, id: string, tick: number, clock: RunWin
     db.prepare(INSERT_REJECTED).bind(id, clock.recordedAt),
   ])
   const removed = finished[0]
-  if (!removed || removed.meta.changes === 0) return { status: "conflict" }
+  if (!removed || removed.meta.changes === 0) return outcomeOrConflict(db, id)
   return { status: "rejected" }
+}
+
+async function outcomeOrConflict(db: D1Database, id: string): Promise<RunResult> {
+  const stored = await finishedRun(db, id)
+  return stored.status === "missing" ? { status: "conflict" } : stored
 }
 
 async function finishedRun(db: D1Database, id: string): Promise<RunResult> {

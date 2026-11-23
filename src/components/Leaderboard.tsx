@@ -23,6 +23,8 @@ export function Leaderboard({ game, run }: { game: GameId; run: RecordedRun | nu
   const [notice, setNotice] = useState<{ key: string; text: string } | null>(null)
   const [failure, setFailure] = useState<{ key: string; text: string } | null>(null)
   const [pending, startTransition] = useTransition()
+  const [submittingKey, setSubmittingKey] = useState<string | null>(null)
+  const [reload, setReload] = useState(0)
   const runKey = run ? `${run.seed}:${run.score}:${run.log.length}` : ""
   const shown = notice?.key === runKey ? notice.text : null
   const failed = failure?.key === runKey ? failure.text : null
@@ -36,30 +38,41 @@ export function Leaderboard({ game, run }: { game: GameId; run: RecordedRun | nu
     return () => {
       ignore = true
     }
-  }, [game])
+  }, [game, reload])
 
   const places = Boolean(run && run.unranked === null && board.status === "ready" && qualifies(run.score, board.scores))
 
+  function retry() {
+    setBoard({ status: "loading" })
+    setReload((count) => count + 1)
+  }
+
   function submit(name: string) {
     if (!run) return
+    const key = runKey
     setFailure(null)
+    setSubmittingKey(key)
     startTransition(async () => {
-      const submitted = await submitRun(run, name)
-      if (submitted.status === "saved") {
-        setNotice({ key: runKey, text: `Saved at rank ${submitted.rank}.` })
-        const loaded = await fetchScores(game)
-        if (loaded.status === "ok") setBoard({ status: "ready", scores: loaded.scores })
-        return
+      try {
+        const submitted = await submitRun(run, name)
+        if (submitted.status === "saved") {
+          setNotice({ key, text: `Saved at rank ${submitted.rank}.` })
+          const loaded = await fetchScores(game)
+          if (loaded.status === "ok") setBoard({ status: "ready", scores: loaded.scores })
+          return
+        }
+        if (submitted.status === "not-placed") {
+          setNotice({ key, text: "That score didn't make the top ten." })
+          return
+        }
+        if (submitted.status === "rejected") {
+          setNotice({ key, text: "That score couldn't be verified." })
+          return
+        }
+        setFailure({ key, text: "The leaderboard could not be reached. Try again." })
+      } finally {
+        setSubmittingKey((current) => (current === key ? null : current))
       }
-      if (submitted.status === "not-placed") {
-        setNotice({ key: runKey, text: "That score didn't make the top ten." })
-        return
-      }
-      if (submitted.status === "rejected") {
-        setNotice({ key: runKey, text: "That score couldn't be verified." })
-        return
-      }
-      setFailure({ key: runKey, text: "The leaderboard could not be reached. Try again." })
     })
   }
 
@@ -69,13 +82,20 @@ export function Leaderboard({ game, run }: { game: GameId; run: RecordedRun | nu
         Top scores
       </h2>
       <ScoreList board={board} game={game} />
+      {board.status === "unavailable" ? (
+        <Button type="button" variant="outline" onClick={retry}>
+          Try again
+        </Button>
+      ) : null}
       {run?.unranked === "custom-speed" ? (
         <p className="text-sm">Scores from a custom fall speed are not submitted.</p>
       ) : null}
       {run?.unranked === "too-long" ? (
         <p className="text-sm">This game ran too long to verify, so it is not submitted.</p>
       ) : null}
-      {places && run && !shown ? <NameForm key={runKey} pending={pending} onSubmit={submit} /> : null}
+      {places && run && !shown ? (
+        <NameForm key={runKey} pending={pending && submittingKey === runKey} onSubmit={submit} />
+      ) : null}
       {failed && !shown ? (
         <p role="alert" className="text-sm text-destructive">
           {failed}

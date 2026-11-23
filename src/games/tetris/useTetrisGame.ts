@@ -48,32 +48,21 @@ type RunLog = {
   limited: boolean
 }
 
-function customGravity(): boolean {
-  try {
-    const raw = localStorage.getItem("tetris:gravity-ms")
-    if (!raw) return false
-    const parsed = Number(raw)
-    return Number.isFinite(parsed) && parsed >= 10 && parsed <= 1000
-  } catch {
-    return false
-  }
-}
-
-function actionCode(action: Action): number {
-  return TETRIS_ACTIONS.indexOf(action)
-}
-
-function gravityInterval(level: number): number {
+function installedGravity(level: number): { ms: number; custom: boolean } {
   try {
     const raw = localStorage.getItem("tetris:gravity-ms")
     if (raw) {
       const parsed = Number(raw)
-      if (Number.isFinite(parsed) && parsed >= 10 && parsed <= 1000) return parsed
+      if (Number.isFinite(parsed) && parsed >= 10 && parsed <= 1000) return { ms: parsed, custom: true }
     }
   } catch {
     // private mode
   }
-  return gravityMs(level)
+  return { ms: gravityMs(level), custom: false }
+}
+
+function actionCode(action: Action): number {
+  return TETRIS_ACTIONS.indexOf(action)
 }
 
 function isStartLevel(level: number): level is StartLevel {
@@ -187,17 +176,17 @@ export function useTetrisGame() {
   const [settings, setSettings] = useState(loadSettings)
   const [bestScores, setBestScores] = useState(loadBestScores)
   const [newBest, setNewBest] = useState(false)
-  const [log] = useState<RunLog>(() => ({
-    level: settings.startLevel,
-    seed: newSeed(),
+  const [opened] = useState(() => ({ level: settings.startLevel, seed: newSeed() }))
+  const runRef = useRef<RunLog>({
+    level: opened.level,
+    seed: opened.seed,
     log: [],
     ticks: 0,
-    customSpeed: customGravity(),
+    customSpeed: false,
     limited: false,
-  }))
-  const runRef = useRef(log)
+  })
   const [run, setRun] = useState<RecordedRun | null>(null)
-  const [game, setGame] = useState(() => createGame(log.level, log.seed))
+  const [game, setGame] = useState(() => createGame(opened.level, opened.seed))
   const gameRef = useRef(game)
   const settingsRef = useRef(settings)
   const bestScoresRef = useRef(bestScores)
@@ -206,7 +195,7 @@ export function useTetrisGame() {
 
   function startRun(level: StartLevel) {
     const seed = newSeed()
-    runRef.current = { level, seed, log: [], ticks: 0, customSpeed: customGravity(), limited: false }
+    runRef.current = { level, seed, log: [], ticks: 0, customSpeed: false, limited: false }
     return createGame(level, seed)
   }
 
@@ -243,7 +232,7 @@ export function useTetrisGame() {
           seed: recorded.seed,
           score: next.score,
           log: recorded.log.slice(),
-          unranked: recorded.customSpeed || customGravity()
+          unranked: recorded.customSpeed
             ? "custom-speed"
             : recorded.limited || pastTickLimit("tetris", recorded.ticks)
               ? "too-long"
@@ -431,11 +420,12 @@ export function useTetrisGame() {
 
   useEffect(() => {
     if (game.status !== "playing") return
-    if (customGravity()) {
+    const gravity = installedGravity(game.level)
+    if (gravity.custom) {
       const active = runRef.current
       if (active) active.customSpeed = true
     }
-    const id = window.setInterval(onTick, gravityInterval(game.level))
+    const id = window.setInterval(onTick, gravity.ms)
     return () => window.clearInterval(id)
   }, [game.status, game.level])
 

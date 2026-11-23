@@ -68,11 +68,12 @@ flowchart LR
 
 - End-to-end tests run in Chromium only.
 - The best score on this device still lives in `localStorage`. It works when the leaderboard does not.
-- Names are exactly 3 letters, stored in capitals. A shared word list blocks rude names in English, Spanish, and Catalan, including simple disguises such as accents, digit swaps, and stretched letters. It misses spellings and languages it does not know. To remove a row, list them and delete by id:
+- Names are exactly 3 letters, stored in capitals. A shared word list blocks rude names in English, Spanish, and Catalan, including simple disguises such as accents, digit swaps, and stretched letters. It misses spellings and languages it does not know. To remove a row, copy the config and replace the placeholder `database_id` in that copy with the production id, then list and delete by id. `wrangler.production.jsonc` is gitignored.
 
   ```bash
-  pnpm wrangler d1 execute arcade --remote --command "SELECT id, game, name, score FROM scores"
-  pnpm wrangler d1 execute arcade --remote --command "DELETE FROM scores WHERE id = 42"
+  cp wrangler.jsonc wrangler.production.jsonc
+  pnpm wrangler d1 execute arcade --config wrangler.production.jsonc --remote --command "SELECT id, game, name, score FROM scores"
+  pnpm wrangler d1 execute arcade --config wrangler.production.jsonc --remote --command "DELETE FROM scores WHERE id = 42"
   ```
 
 - Axe runs in the end-to-end tests, on every route, in light and dark. It checks contrast, names, and ARIA. It does not check that a game is playable by keyboard.

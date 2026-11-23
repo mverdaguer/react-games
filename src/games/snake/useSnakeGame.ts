@@ -101,16 +101,16 @@ export function useSnakeGame() {
   const [settings, setSettings] = useState(loadSettings)
   const [bestScores, setBestScores] = useState(loadBestScores)
   const [newBest, setNewBest] = useState(false)
-  const [log] = useState<RunLog>(() => ({
-    level: settings.level,
-    seed: newSeed(),
+  const [opened] = useState(() => ({ level: settings.level, seed: newSeed() }))
+  const runRef = useRef<RunLog>({
+    level: opened.level,
+    seed: opened.seed,
     log: [],
     ticks: 0,
     limited: false,
-  }))
-  const runRef = useRef(log)
+  })
   const [run, setRun] = useState<RecordedRun | null>(null)
-  const [game, setGame] = useState(() => createGame(log.level, log.seed))
+  const [game, setGame] = useState(() => createGame(opened.level, opened.seed))
   const gameRef = useRef(game)
   const settingsRef = useRef(settings)
   const bestScoresRef = useRef(bestScores)

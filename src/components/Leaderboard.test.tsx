@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { userEvent } from "vitest/browser"
 import { render } from "vitest-browser-react"
@@ -131,6 +132,55 @@ test("keeps the loaded scores when a submission cannot be checked", async () => 
   )
   await expect.element(screen.getByText("1. Ada")).toBeVisible()
   await expect.element(screen.getByRole("textbox", { name: "Initials" })).toBeVisible()
+})
+
+test("loads the scores again from the unavailable board", async () => {
+  let recovered = false
+  vi.stubGlobal("fetch", () => {
+    if (!recovered) {
+      return Promise.resolve(new Response("<html></html>", { headers: { "content-type": "text/html" } }))
+    }
+    return Promise.resolve(json({ scores: [{ id: 1, name: "Ada", score: 4, level: 1 }] }))
+  })
+  const screen = await render(<Leaderboard game="snake" run={run} />)
+  await expect.element(screen.getByText("Leaderboard unavailable")).toBeVisible()
+  expect(screen.getByRole("textbox", { name: "Initials" }).elements()).toHaveLength(0)
+  recovered = true
+  await screen.getByRole("button", { name: "Try again" }).click()
+  await expect.element(screen.getByText("1. Ada")).toBeVisible()
+  await expect.element(screen.getByRole("textbox", { name: "Initials" })).toBeVisible()
+})
+
+test("lets a newer run be submitted while an earlier check is still running", async () => {
+  let release: ((response: Response) => void) | undefined
+  stub((request) => {
+    if (request.method === "POST") {
+      return new Promise((resolve) => {
+        release = resolve
+      })
+    }
+    return json({ scores: [] })
+  })
+
+  function Board() {
+    const [current, setCurrent] = useState(run)
+    return (
+      <>
+        <button type="button" onClick={() => setCurrent({ ...run, seed: 2, score: 30 })}>
+          Next run
+        </button>
+        <Leaderboard game="snake" run={current} />
+      </>
+    )
+  }
+
+  const screen = await render(<Board />)
+  await userEvent.fill(screen.getByRole("textbox", { name: "Initials" }), "Ada")
+  await screen.getByRole("button", { name: "Submit" }).click()
+  await expect.element(screen.getByRole("button", { name: "Checking score…" })).toBeVisible()
+  await screen.getByRole("button", { name: "Next run" }).click()
+  await expect.element(screen.getByRole("button", { name: "Submit" })).toBeEnabled()
+  release?.(json({ status: "not-placed" }))
 })
 
 test("rejects a blocked name before sending it", async () => {
