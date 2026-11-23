@@ -11,6 +11,11 @@ export default defineConfig({
       "@": resolve(import.meta.dirname, "src"),
     },
   },
+  // Prebundle these so the browser test server does not reload mid-run.
+  // A reload on CI left the Pang iframe uninitialized until its 60s timeout.
+  optimizeDeps: {
+    include: ["react-dom/client", "react-router", "vitest-browser-react"],
+  },
   server: process.env.VITEST
     ? {}
     : {
