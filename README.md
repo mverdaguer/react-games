@@ -4,7 +4,7 @@
 
 A small single-page app for playing web games in the browser. A sidebar lists the games, and the one you pick opens in the main frame at its own URL.
 
-Live demo: [games.verdegang.workers.dev](https://games.verdegang.workers.dev)
+Live demo: [games.mverdaguer.workers.dev](https://games.mverdaguer.workers.dev)
 
 ![The arcade shelf](docs/screenshots/home-light.png#gh-light-mode-only)
 ![The arcade shelf](docs/screenshots/home-dark.png#gh-dark-mode-only)
