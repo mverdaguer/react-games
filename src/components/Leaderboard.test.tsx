@@ -65,9 +65,28 @@ test("says the leaderboard is unavailable when the response is not JSON", async 
   await expect.element(screen.getByText("Leaderboard unavailable")).toBeVisible()
 })
 
+test("keeps the initials to three letters", async () => {
+  stub(() => json({ scores: [] }))
+  const screen = await render(<Leaderboard game="snake" run={run} />)
+  const initials = screen.getByRole("textbox", { name: "Initials" })
+  await userEvent.fill(initials, "abcde")
+  await expect.element(initials).toHaveValue("ABC")
+})
+
 test("asks for a name when the score would place", async () => {
   stub(() => json({ scores: [{ id: 1, name: "Ada", score: 4, level: 1 }] }))
   const screen = await render(<Leaderboard game="snake" run={run} />)
+  await expect.element(screen.getByRole("dialog", { name: "Save your score" })).toBeVisible()
+  await expect.element(screen.getByRole("textbox", { name: "Initials" })).toBeVisible()
+})
+
+test("closes the initials dialog and opens it again", async () => {
+  stub(() => json({ scores: [] }))
+  const screen = await render(<Leaderboard game="snake" run={run} />)
+  await expect.element(screen.getByRole("textbox", { name: "Initials" })).toBeVisible()
+  await screen.getByRole("button", { name: "Close" }).click()
+  expect(screen.getByRole("textbox", { name: "Initials" }).elements()).toHaveLength(0)
+  await screen.getByRole("button", { name: "Enter initials" }).click()
   await expect.element(screen.getByRole("textbox", { name: "Initials" })).toBeVisible()
 })
 
@@ -181,6 +200,18 @@ test("lets a newer run be submitted while an earlier check is still running", as
   await screen.getByRole("button", { name: "Next run" }).click()
   await expect.element(screen.getByRole("button", { name: "Submit" })).toBeEnabled()
   release?.(json({ status: "not-placed" }))
+})
+
+test("clears the format error when a letter is removed", async () => {
+  stub(() => json({ scores: [] }))
+  const screen = await render(<Leaderboard game="snake" run={run} />)
+  const initials = screen.getByRole("textbox", { name: "Initials" })
+  await userEvent.fill(initials, "AB")
+  await screen.getByRole("button", { name: "Submit" }).click()
+  await expect.element(screen.getByRole("alert")).toHaveTextContent("Use 3 letters.")
+  await userEvent.fill(initials, "A")
+  await expect.element(initials).toHaveValue("A")
+  expect(screen.getByRole("alert").elements()).toHaveLength(0)
 })
 
 test("rejects a blocked name before sending it", async () => {

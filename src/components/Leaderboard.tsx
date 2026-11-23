@@ -1,6 +1,14 @@
 import { useEffect, useState, useTransition, type FormEvent } from "react"
 
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
   checkName,
@@ -16,6 +24,7 @@ type Board =
   | { status: "unavailable" }
   | { status: "ready"; scores: ScoreRow[] }
 
+const NAME_LENGTH = 3
 const FORMAT_HINT = "Use 3 letters."
 
 export function Leaderboard({ game, run }: { game: GameId; run: RecordedRun | null }) {
@@ -24,6 +33,7 @@ export function Leaderboard({ game, run }: { game: GameId; run: RecordedRun | nu
   const [failure, setFailure] = useState<{ key: string; text: string } | null>(null)
   const [pending, startTransition] = useTransition()
   const [submittingKey, setSubmittingKey] = useState<string | null>(null)
+  const [dismissedKey, setDismissedKey] = useState<string | null>(null)
   const [reload, setReload] = useState(0)
   const runKey = run ? `${run.seed}:${run.score}:${run.log.length}` : ""
   const shown = notice?.key === runKey ? notice.text : null
@@ -41,6 +51,9 @@ export function Leaderboard({ game, run }: { game: GameId; run: RecordedRun | nu
   }, [game, reload])
 
   const places = Boolean(run && run.unranked === null && board.status === "ready" && qualifies(run.score, board.scores))
+  const checking = pending && submittingKey === runKey
+  const ask = Boolean(run && places && !shown)
+  const dismissed = dismissedKey === runKey
 
   function retry() {
     setBoard({ status: "loading" })
@@ -93,20 +106,47 @@ export function Leaderboard({ game, run }: { game: GameId; run: RecordedRun | nu
       {run?.unranked === "too-long" ? (
         <p className="text-sm">This game ran too long to verify, so it is not submitted.</p>
       ) : null}
-      {places && run && !shown ? (
-        <NameForm key={runKey} pending={pending && submittingKey === runKey} onSubmit={submit} />
+      {ask && run && !dismissed ? (
+        <Dialog
+          open
+          modal={!checking}
+          onOpenChange={(next) => {
+            if (!next && !checking) setDismissedKey(runKey)
+          }}
+        >
+          <DialogContent overlayClassName={checking ? "pointer-events-none" : undefined}>
+            <DialogHeader>
+              <DialogTitle>Save your score</DialogTitle>
+              <DialogDescription>{run.score} points.</DialogDescription>
+            </DialogHeader>
+            <NameForm
+              key={runKey}
+              pending={checking}
+              failure={failed}
+              onSubmit={submit}
+            />
+          </DialogContent>
+        </Dialog>
       ) : null}
-      {failed && !shown ? (
-        <p role="alert" className="text-sm text-destructive">
-          {failed}
-        </p>
+      {ask && dismissed ? (
+        <Button type="button" variant="outline" onClick={() => setDismissedKey(null)}>
+          Enter initials
+        </Button>
       ) : null}
       {shown ? <p className="text-sm">{shown}</p> : null}
     </section>
   )
 }
 
-function NameForm({ pending, onSubmit }: { pending: boolean; onSubmit: (name: string) => void }) {
+function NameForm({
+  pending,
+  failure,
+  onSubmit,
+}: {
+  pending: boolean
+  failure: string | null
+  onSubmit: (name: string) => void
+}) {
   const [draft, setDraft] = useState("")
   const [nameError, setNameError] = useState<string | null>(null)
 
@@ -122,32 +162,49 @@ function NameForm({ pending, onSubmit }: { pending: boolean; onSubmit: (name: st
   }
 
   return (
-    <form className="flex flex-col gap-2" onSubmit={onSubmitForm}>
-      <label htmlFor="score-name" className="text-sm font-medium">
-        Initials
-      </label>
-      <Input
-        id="score-name"
-        value={draft}
-        autoCapitalize="characters"
-        autoComplete="off"
-        spellCheck={false}
-        aria-invalid={nameError !== null}
-        aria-describedby="score-name-hint"
-        className="w-16 font-mono tracking-widest"
-        onChange={(event) => setDraft(event.target.value.toLocaleUpperCase())}
-      />
-      <p id="score-name-hint" className="text-xs text-muted-foreground">
-        {FORMAT_HINT}
-      </p>
-      {nameError ? (
-        <p role="alert" className="text-sm text-destructive">
-          {nameError}
-        </p>
-      ) : null}
-      <Button type="submit" disabled={pending}>
-        {pending ? "Checking score…" : "Submit"}
-      </Button>
+    <form className="flex flex-col gap-4" onSubmit={onSubmitForm}>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-baseline gap-2">
+          <label htmlFor="score-name" className="text-sm font-medium">
+            Initials
+          </label>
+          <p id="score-name-hint" className="text-xs text-muted-foreground">
+            {FORMAT_HINT}
+          </p>
+        </div>
+        <Input
+          id="score-name"
+          value={draft}
+          maxLength={NAME_LENGTH}
+          autoFocus
+          autoCapitalize="characters"
+          autoComplete="off"
+          spellCheck={false}
+          aria-invalid={nameError !== null}
+          aria-describedby="score-name-hint"
+          className="w-16 font-mono tracking-widest"
+          onChange={(event) => {
+            const next = [...event.target.value.toLocaleUpperCase()].slice(0, NAME_LENGTH).join("")
+            setDraft(next)
+            if (next.length < draft.length) setNameError(null)
+          }}
+        />
+        {nameError ? (
+          <p role="alert" className="text-sm text-destructive">
+            {nameError}
+          </p>
+        ) : null}
+        {failure ? (
+          <p role="alert" className="text-sm text-destructive">
+            {failure}
+          </p>
+        ) : null}
+      </div>
+      <DialogFooter>
+        <Button type="submit" disabled={pending}>
+          {pending ? "Checking score…" : "Submit"}
+        </Button>
+      </DialogFooter>
     </form>
   )
 }
