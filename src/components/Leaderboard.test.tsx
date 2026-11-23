@@ -11,7 +11,7 @@ const run: RecordedRun = {
   seed: 1,
   score: 12,
   log: [[0, 0]],
-  ranked: true,
+  unranked: null,
 }
 
 const calls: string[] = []

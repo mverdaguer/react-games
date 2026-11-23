@@ -61,13 +61,32 @@ export const GAME_RULES: Record<GameId, GameRules> = {
 
 const NAME_PATTERN = /^\p{L}{3}$/u
 
+export type UnrankedReason = "custom-speed" | "too-long"
+
 export type RecordedRun = {
   game: GameId
   level: number
   seed: number
   score: number
   log: readonly LogEntry[]
-  ranked: boolean
+  unranked: UnrankedReason | null
+}
+
+// Returns false once another entry would make the Worker reject the log.
+export function recordInput(game: GameId, log: LogEntry[], ticks: number, code: number): boolean {
+  const rules = GAME_RULES[game]
+  if (ticks >= rules.maxTicks || log.length >= MAX_LOG_ENTRIES) return false
+  let sameTick = 0
+  for (let index = log.length - 1; index >= 0 && log[index]?.[0] === ticks; index -= 1) {
+    sameTick += 1
+  }
+  if (sameTick >= rules.maxPerTick) return false
+  log.push([ticks, code])
+  return true
+}
+
+export function pastTickLimit(game: GameId, ticks: number): boolean {
+  return ticks >= GAME_RULES[game].maxTicks
 }
 
 export type NameCheck =

@@ -1,6 +1,6 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react"
 
-import { type RecordedRun } from "@/games/shared/leaderboard"
+import { pastTickLimit, recordInput, type RecordedRun } from "@/games/shared/leaderboard"
 import type { LogEntry } from "@/games/shared/replay"
 import {
   createGame,
@@ -36,6 +36,7 @@ type RunLog = {
   log: LogEntry[]
   ticks: number
   mask: number
+  limited: boolean
 }
 
 const COUNTED = new Set<Game["status"]>(["playing", "dying", "cleared"])
@@ -86,7 +87,7 @@ export function usePangGame() {
   const [settings, setSettings] = useState(loadSettings)
   const [best, setBest] = useState<Best | null>(loadBest)
   const [newBest, setNewBest] = useState(false)
-  const [log] = useState<RunLog>(() => ({ seed: newSeed(), log: [], ticks: 0, mask: 0 }))
+  const [log] = useState<RunLog>(() => ({ seed: newSeed(), log: [], ticks: 0, mask: 0, limited: false }))
   const runRef = useRef(log)
   const [run, setRun] = useState<RecordedRun | null>(null)
   const [game, setGame] = useState(() => createGame(log.seed))
@@ -101,7 +102,7 @@ export function usePangGame() {
 
   function startRun() {
     const seed = newSeed()
-    runRef.current = { seed, log: [], ticks: 0, mask: 0 }
+    runRef.current = { seed, log: [], ticks: 0, mask: 0, limited: false }
     return createGame(seed)
   }
 
@@ -144,7 +145,7 @@ export function usePangGame() {
           seed: recorded.seed,
           score: next.score,
           log: recorded.log.slice(),
-          ranked: true,
+          unranked: recorded.limited || pastTickLimit("pang", recorded.ticks) ? "too-long" : null,
         })
       }
       const previous = bestRef.current
@@ -217,10 +218,13 @@ export function usePangGame() {
         const run = runRef.current
         const mask = maskFromInput(input)
         if (run && mask !== run.mask) {
-          run.log.push([run.ticks, mask])
+          if (!run.limited && !recordInput("pang", run.log, run.ticks, mask)) run.limited = true
           run.mask = mask
         }
-        if (run) run.ticks += 1
+        if (run) {
+          run.ticks += 1
+          if (pastTickLimit("pang", run.ticks)) run.limited = true
+        }
       }
       next = step(next, input)
       clock.acc -= STEP_MS

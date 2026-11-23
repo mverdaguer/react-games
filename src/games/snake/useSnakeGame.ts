@@ -1,6 +1,6 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react"
 
-import { SNAKE_DIRECTIONS, type RecordedRun } from "@/games/shared/leaderboard"
+import { pastTickLimit, recordInput, SNAKE_DIRECTIONS, type RecordedRun } from "@/games/shared/leaderboard"
 import type { LogEntry } from "@/games/shared/replay"
 import {
   createGame,
@@ -30,6 +30,7 @@ type RunLog = {
   seed: number
   log: LogEntry[]
   ticks: number
+  limited: boolean
 }
 
 function directionCode(dir: Direction): number {
@@ -105,6 +106,7 @@ export function useSnakeGame() {
     seed: newSeed(),
     log: [],
     ticks: 0,
+    limited: false,
   }))
   const runRef = useRef(log)
   const [run, setRun] = useState<RecordedRun | null>(null)
@@ -115,14 +117,14 @@ export function useSnakeGame() {
 
   function startRun(level: Level) {
     const seed = newSeed()
-    runRef.current = { level, seed, log: [], ticks: 0 }
+    runRef.current = { level, seed, log: [], ticks: 0, limited: false }
     return createGame(level, seed)
   }
 
   function noteTurn(dir: Direction) {
     const run = runRef.current
-    if (!run) return
-    run.log.push([run.ticks, directionCode(dir)])
+    if (!run || run.limited) return
+    if (!recordInput("snake", run.log, run.ticks, directionCode(dir))) run.limited = true
   }
 
   function commit(next: Game) {
@@ -144,7 +146,7 @@ export function useSnakeGame() {
           seed: recorded.seed,
           score: next.score,
           log: recorded.log.slice(),
-          ranked: true,
+          unranked: recorded.limited || pastTickLimit("snake", recorded.ticks) ? "too-long" : null,
         })
       }
       if (settingsRef.current.sound) playSound("die")
@@ -213,7 +215,10 @@ export function useSnakeGame() {
     const current = gameRef.current
     if (current.status === "playing") {
       const run = runRef.current
-      if (run) run.ticks += 1
+      if (run) {
+        run.ticks += 1
+        if (pastTickLimit("snake", run.ticks)) run.limited = true
+      }
     }
     commit(step(current))
   })

@@ -7,7 +7,9 @@ import {
   parseInputLevel,
   parseLog,
   parseSeed,
+  pastTickLimit,
   qualifies,
+  recordInput,
 } from "@/games/shared/leaderboard"
 
 describe("checkName", () => {
@@ -76,5 +78,20 @@ describe("qualifies", () => {
     expect(qualifies(full[9].score + 1, full)).toBe(true)
     expect(qualifies(full[9].score, full)).toBe(false)
     expect(qualifies(full[9].score - 1, full)).toBe(false)
+  })
+})
+
+describe("recordInput", () => {
+  it("stops at the third snake turn in one tick and at the tick cap", () => {
+    const log: [number, number][] = []
+    expect(recordInput("snake", log, 0, 0)).toBe(true)
+    expect(recordInput("snake", log, 0, 2)).toBe(true)
+    expect(recordInput("snake", log, 0, 1)).toBe(false)
+    expect(log).toEqual([
+      [0, 0],
+      [0, 2],
+    ])
+    expect(pastTickLimit("snake", 100_000)).toBe(true)
+    expect(recordInput("snake", [], 100_000, 0)).toBe(false)
   })
 })

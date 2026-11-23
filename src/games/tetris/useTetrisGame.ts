@@ -1,6 +1,6 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react"
 
-import { TETRIS_ACTIONS, type RecordedRun } from "@/games/shared/leaderboard"
+import { pastTickLimit, recordInput, TETRIS_ACTIONS, type RecordedRun } from "@/games/shared/leaderboard"
 import type { LogEntry } from "@/games/shared/replay"
 import {
   apply,
@@ -44,7 +44,8 @@ type RunLog = {
   seed: number
   log: LogEntry[]
   ticks: number
-  ranked: boolean
+  customSpeed: boolean
+  limited: boolean
 }
 
 function customGravity(): boolean {
@@ -191,7 +192,8 @@ export function useTetrisGame() {
     seed: newSeed(),
     log: [],
     ticks: 0,
-    ranked: !customGravity(),
+    customSpeed: customGravity(),
+    limited: false,
   }))
   const runRef = useRef(log)
   const [run, setRun] = useState<RecordedRun | null>(null)
@@ -204,15 +206,15 @@ export function useTetrisGame() {
 
   function startRun(level: StartLevel) {
     const seed = newSeed()
-    runRef.current = { level, seed, log: [], ticks: 0, ranked: !customGravity() }
+    runRef.current = { level, seed, log: [], ticks: 0, customSpeed: customGravity(), limited: false }
     return createGame(level, seed)
   }
 
   function noteAction(before: Game, after: Game, action: Action) {
     if (before === after || before.status !== "playing") return
     const run = runRef.current
-    if (!run) return
-    run.log.push([run.ticks, actionCode(action)])
+    if (!run || run.limited) return
+    if (!recordInput("tetris", run.log, run.ticks, actionCode(action))) run.limited = true
   }
 
   function releaseHolds() {
@@ -241,7 +243,11 @@ export function useTetrisGame() {
           seed: recorded.seed,
           score: next.score,
           log: recorded.log.slice(),
-          ranked: recorded.ranked && !customGravity(),
+          unranked: recorded.customSpeed || customGravity()
+            ? "custom-speed"
+            : recorded.limited || pastTickLimit("tetris", recorded.ticks)
+              ? "too-long"
+              : null,
         })
       }
       const previous = bestScoresRef.current[next.startLevel]
@@ -363,7 +369,10 @@ export function useTetrisGame() {
     const current = gameRef.current
     if (current.status === "playing") {
       const run = runRef.current
-      if (run) run.ticks += 1
+      if (run) {
+        run.ticks += 1
+        if (pastTickLimit("tetris", run.ticks)) run.limited = true
+      }
     }
     commit(tick(current))
   })

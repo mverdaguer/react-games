@@ -37,7 +37,7 @@ export function Leaderboard({ game, run }: { game: GameId; run: RecordedRun | nu
     }
   }, [game])
 
-  const places = Boolean(run?.ranked && board.status === "ready" && qualifies(run.score, board.scores))
+  const places = Boolean(run && run.unranked === null && board.status === "ready" && qualifies(run.score, board.scores))
 
   function submit(name: string) {
     if (!run) return
@@ -67,8 +67,11 @@ export function Leaderboard({ game, run }: { game: GameId; run: RecordedRun | nu
         Top scores
       </h2>
       <ScoreList board={board} game={game} />
-      {run && !run.ranked ? (
+      {run?.unranked === "custom-speed" ? (
         <p className="text-sm">Scores from a custom fall speed are not submitted.</p>
+      ) : null}
+      {run?.unranked === "too-long" ? (
+        <p className="text-sm">This game ran too long to verify, so it is not submitted.</p>
       ) : null}
       {places && run && !shown ? <NameForm key={runKey} pending={pending} onSubmit={submit} /> : null}
       {shown ? <p className="text-sm">{shown}</p> : null}
