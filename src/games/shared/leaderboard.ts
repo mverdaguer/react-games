@@ -3,7 +3,7 @@ import type { LogEntry } from "@/games/shared/replay"
 
 export type { LogEntry } from "@/games/shared/replay"
 
-export const GAME_IDS = ["snake", "tetris", "pang"] as const
+export const GAME_IDS = ["snake", "tetris", "pang", "arkanoid"] as const
 
 export type GameId = (typeof GAME_IDS)[number]
 
@@ -50,6 +50,14 @@ export const GAME_RULES: Record<GameId, GameRules> = {
     levels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
   },
   pang: {
+    chunk: 3_000,
+    maxTicks: 216_000,
+    maxCode: 7,
+    maxPerTick: 1,
+    strictTicks: true,
+    levels: null,
+  },
+  arkanoid: {
     chunk: 3_000,
     maxTicks: 216_000,
     maxCode: 7,
@@ -175,5 +183,6 @@ export function qualifies(score: number, scores: readonly { score: number }[]): 
 
 export function levelLabel(game: GameId, level: number): string {
   if (game === "pang") return `Stage ${level}`
+  if (game === "arkanoid") return `Round ${level}`
   return `Level ${level}`
 }

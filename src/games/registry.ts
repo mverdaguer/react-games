@@ -1,5 +1,5 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from "react"
-import { Blocks, Bomb, Brain, Grid3x3, Volleyball, Worm, type LucideIcon } from "lucide-react"
+import { Blocks, Bomb, Brain, BrickWall, Grid3x3, Volleyball, Worm, type LucideIcon } from "lucide-react"
 
 export type GameDefinition = {
   slug: string
@@ -17,6 +17,7 @@ const loadMinesweeper = () => import("@/games/minesweeper")
 const loadSnake = () => import("@/games/snake")
 const loadTetris = () => import("@/games/tetris")
 const loadPang = () => import("@/games/pang")
+const loadArkanoid = () => import("@/games/arkanoid")
 
 export const games: GameDefinition[] = [
   {
@@ -75,6 +76,16 @@ export const games: GameDefinition[] = [
     tags: ["Solo", "Arcade"],
     component: lazy(loadPang),
     preload: loadPang,
+  },
+  {
+    slug: "arkanoid",
+    name: "Arkanoid",
+    description:
+      "Break the bricks with the Vaus. Capsules fall as the bricks break, and each cleared round comes back faster.",
+    icon: BrickWall,
+    tags: ["Solo", "Arcade"],
+    component: lazy(loadArkanoid),
+    preload: loadArkanoid,
   },
 ]
 

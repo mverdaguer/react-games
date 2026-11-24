@@ -9,6 +9,7 @@ const routes = [
   "/games/snake",
   "/games/tetris",
   "/games/pang",
+  "/games/arkanoid",
   "/games/nope",
 ]
 

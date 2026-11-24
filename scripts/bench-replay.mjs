@@ -15,6 +15,7 @@ const snake = await import("../src/games/snake/replay.ts")
 const tetrisReplay = await import("../src/games/tetris/replay.ts")
 const tetris = await import("../src/games/tetris/logic.ts")
 const pang = await import("../src/games/pang/replay.ts")
+const arkanoid = await import("../src/games/arkanoid/replay.ts")
 
 const SAMPLES = 5
 const LIMIT_MS = 8
@@ -53,6 +54,11 @@ const pangLog = [[0, 1]]
 const pangFresh = pang.begin(0, 1)
 const pangLater = resumed(pang.begin(0, 1), pang.advance, pangLog, 2_000)
 
+// An empty log leaves the ball stuck, so the run stays playing for a full chunk.
+const arkanoidLog = []
+const arkanoidFresh = arkanoid.begin(0, 1)
+const arkanoidLater = resumed(arkanoid.begin(0, 1), arkanoid.advance, arkanoidLog, 2_000)
+
 // One turn on the first tick, then a second chunk from the checkpoint that leaves.
 const snakeLog = [[0, 0]]
 const snakeFresh = snake.begin(9, 1)
@@ -68,6 +74,8 @@ measure("tetris fresh", GAME_RULES.tetris.chunk, tetrisFresh, tetrisReplay.advan
 measure("tetris resumed", GAME_RULES.tetris.chunk, tetrisLater, tetrisReplay.advance, tetrisLog)
 measure("pang fresh", GAME_RULES.pang.chunk, pangFresh, pang.advance, pangLog)
 measure("pang resumed", GAME_RULES.pang.chunk, pangLater, pang.advance, pangLog)
+measure("arkanoid fresh", GAME_RULES.arkanoid.chunk, arkanoidFresh, arkanoid.advance, arkanoidLog)
+measure("arkanoid resumed", GAME_RULES.arkanoid.chunk, arkanoidLater, arkanoid.advance, arkanoidLog)
 
 function tetrisSurvivalLog(seed, ticks) {
   const weights = { aggregate: 1, holes: 30, bump: 1, max: 3, wells: 4, lines: -35 }

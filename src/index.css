@@ -118,6 +118,19 @@
     --color-pang-ground-3: var(--pang-ground-3);
     --color-pang-ground-4: var(--pang-ground-4);
     --color-pang-ground-5: var(--pang-ground-5);
+    --color-arkanoid-brick-0: var(--arkanoid-brick-0);
+    --color-arkanoid-brick-1: var(--arkanoid-brick-1);
+    --color-arkanoid-brick-2: var(--arkanoid-brick-2);
+    --color-arkanoid-brick-3: var(--arkanoid-brick-3);
+    --color-arkanoid-brick-4: var(--arkanoid-brick-4);
+    --color-arkanoid-brick-5: var(--arkanoid-brick-5);
+    --color-arkanoid-silver: var(--arkanoid-silver);
+    --color-arkanoid-gold: var(--arkanoid-gold);
+    --color-arkanoid-vaus: var(--arkanoid-vaus);
+    --color-arkanoid-ball: var(--arkanoid-ball);
+    --color-arkanoid-capsule: var(--arkanoid-capsule);
+    --color-arkanoid-laser: var(--arkanoid-laser);
+    --color-arkanoid-gate: var(--arkanoid-gate);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -246,6 +259,19 @@
     --pang-ground-3: oklch(0.22 0.03 265);
     --pang-ground-4: oklch(0.3 0.04 150);
     --pang-ground-5: oklch(0.4 0.09 60);
+    --arkanoid-brick-0: oklch(0.58 0.2 25);
+    --arkanoid-brick-1: oklch(0.7 0.17 55);
+    --arkanoid-brick-2: oklch(0.76 0.16 110);
+    --arkanoid-brick-3: oklch(0.64 0.16 150);
+    --arkanoid-brick-4: oklch(0.58 0.14 220);
+    --arkanoid-brick-5: oklch(0.5 0.16 290);
+    --arkanoid-silver: oklch(0.72 0.02 250);
+    --arkanoid-gold: oklch(0.82 0.15 88);
+    --arkanoid-vaus: oklch(0.48 0.2 255);
+    --arkanoid-ball: oklch(0.97 0.01 95);
+    --arkanoid-capsule: oklch(0.78 0.16 330);
+    --arkanoid-laser: oklch(0.6 0.23 28);
+    --arkanoid-gate: oklch(0.86 0.17 155);
 }
 
 .dark {
@@ -359,6 +385,19 @@
     --pang-ground-3: oklch(0.22 0.03 265);
     --pang-ground-4: oklch(0.3 0.04 150);
     --pang-ground-5: oklch(0.4 0.09 60);
+    --arkanoid-brick-0: oklch(0.58 0.2 25);
+    --arkanoid-brick-1: oklch(0.7 0.17 55);
+    --arkanoid-brick-2: oklch(0.76 0.16 110);
+    --arkanoid-brick-3: oklch(0.64 0.16 150);
+    --arkanoid-brick-4: oklch(0.58 0.14 220);
+    --arkanoid-brick-5: oklch(0.5 0.16 290);
+    --arkanoid-silver: oklch(0.72 0.02 250);
+    --arkanoid-gold: oklch(0.82 0.15 88);
+    --arkanoid-vaus: oklch(0.48 0.2 255);
+    --arkanoid-ball: oklch(0.97 0.01 95);
+    --arkanoid-capsule: oklch(0.78 0.16 330);
+    --arkanoid-laser: oklch(0.6 0.23 28);
+    --arkanoid-gate: oklch(0.86 0.17 155);
 }
 
 @layer base {

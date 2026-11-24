@@ -7,6 +7,7 @@ import {
   parseInputLevel,
   parseLog,
   parseSeed,
+  levelLabel,
   pastTickLimit,
   qualifies,
   recordInput,
@@ -54,6 +55,8 @@ describe("parseInputLevel", () => {
     expect(parseInputLevel("tetris", 10)).toBeNull()
     expect(parseInputLevel("pang", undefined)).toBe(0)
     expect(parseInputLevel("pang", 4)).toBe(4)
+    expect(parseInputLevel("arkanoid", undefined)).toBe(0)
+    expect(parseInputLevel("arkanoid", 4)).toBe(4)
   })
 })
 
@@ -69,6 +72,12 @@ describe("parseLog", () => {
     expect(parseLog("pang", [[0, 1], [2, 0]])).toEqual([[0, 1], [2, 0]])
     expect(parseLog("pang", [[1, 1], [1, 2]])).toBeNull()
     expect(parseLog("pang", [[0, 8]])).toBeNull()
+  })
+
+  it("accepts one arkanoid code per tick", () => {
+    expect(parseLog("arkanoid", [[0, 1], [2, 0]])).toEqual([[0, 1], [2, 0]])
+    expect(parseLog("arkanoid", [[1, 1], [1, 2]])).toBeNull()
+    expect(parseLog("arkanoid", [[0, 8]])).toBeNull()
   })
 
   it("accepts a tetris rotate and sixty-four actions on one tick", () => {
@@ -107,5 +116,17 @@ describe("recordInput", () => {
     expect(recordInput("snake", kept, 2, 9)).toBe(false)
     expect(recordInput("pang", [[1, 1]], 1, 0)).toBe(false)
     expect(kept).toEqual([[2, 0]])
+  })
+
+  it("rejects a second arkanoid code on the same tick and the tick past 216000", () => {
+    const log: [number, number][] = [[1, 1]]
+    expect(recordInput("arkanoid", log, 1, 0)).toBe(false)
+    expect(log).toEqual([[1, 1]])
+    expect(recordInput("arkanoid", [], 216_000, 0)).toBe(false)
+    expect(pastTickLimit("arkanoid", 216_000)).toBe(false)
+    expect(pastTickLimit("arkanoid", 216_001)).toBe(true)
+    expect(levelLabel("arkanoid", 3)).toBe("Round 3")
+    expect(levelLabel("pang", 3)).toBe("Stage 3")
+    expect(levelLabel("snake", 3)).toBe("Level 3")
   })
 })

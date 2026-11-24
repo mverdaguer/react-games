@@ -1,7 +1,14 @@
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react"
 import { useRef, type PointerEvent, type ReactNode } from "react"
 
-type HoldDir = "left" | "right" | "down"
+import {
+  directionButton,
+  GameBoy,
+  HoldButton,
+  pillButton,
+  roundButton,
+  TapButton,
+} from "@/games/shared/game-boy"
 
 type Gesture = {
   x: number
@@ -12,25 +19,6 @@ type Gesture = {
   dragged: boolean
 }
 
-const directionButton =
-  "inline-flex size-11 cursor-pointer items-center justify-center rounded-md bg-gbc-button text-gbc-button-ink"
-
-const roundButton =
-  "inline-flex size-12 cursor-pointer items-center justify-center rounded-full bg-gbc-button text-xs font-medium text-gbc-button-ink"
-
-const pillButton =
-  "inline-flex h-11 cursor-pointer items-center justify-center rounded-full bg-gbc-button px-4 text-xs font-medium tracking-wide text-gbc-button-ink"
-
-function stopPointer(event: PointerEvent<HTMLButtonElement>) {
-  event.preventDefault()
-  event.stopPropagation()
-}
-
-function press(event: PointerEvent<HTMLButtonElement>, action: () => void) {
-  stopPointer(event)
-  action()
-}
-
 function cellSize(bezel: HTMLElement): { width: number; height: number } {
   const svg = bezel.querySelector("svg")
   if (!svg) return { width: 16, height: 16 }
@@ -39,76 +27,6 @@ function cellSize(bezel: HTMLElement): { width: number; height: number } {
   const height = (bounds.height / 144) * 7
   if (width <= 0 || height <= 0) return { width: 16, height: 16 }
   return { width, height }
-}
-
-function TapButton({
-  label,
-  className,
-  pressed,
-  onPress,
-  children,
-}: {
-  label: string
-  className: string
-  pressed?: boolean
-  onPress: () => void
-  children: ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      tabIndex={-1}
-      aria-label={label}
-      aria-pressed={pressed}
-      className={className}
-      onPointerDown={(event) => press(event, onPress)}
-      onClick={(event) => {
-        if (event.detail === 0) onPress()
-      }}
-    >
-      {children}
-    </button>
-  )
-}
-
-function HoldButton({
-  label,
-  dir,
-  onHoldStart,
-  onHoldEnd,
-  children,
-}: {
-  label: string
-  dir: HoldDir
-  onHoldStart: (dir: HoldDir) => void
-  onHoldEnd: (dir: HoldDir) => void
-  children: ReactNode
-}) {
-  function end(event: PointerEvent<HTMLButtonElement>) {
-    stopPointer(event)
-    onHoldEnd(dir)
-  }
-
-  return (
-    <button
-      type="button"
-      tabIndex={-1}
-      aria-label={label}
-      className={directionButton}
-      onPointerDown={(event) => press(event, () => onHoldStart(dir))}
-      onPointerUp={end}
-      onPointerCancel={end}
-      onPointerLeave={end}
-      onClick={(event) => {
-        if (event.detail === 0) {
-          onHoldStart(dir)
-          onHoldEnd(dir)
-        }
-      }}
-    >
-      {children}
-    </button>
-  )
 }
 
 export function Device({
@@ -198,42 +116,40 @@ export function Device({
   }
 
   return (
-    <div className="mx-auto w-full max-w-sm rounded-4xl bg-gbc-shell p-2 shadow-lg ring-1 ring-gbc-shell-edge">
-      <div
-        className="flex touch-none flex-col gap-1 rounded-2xl bg-gbc-bezel p-2 select-none"
+    <GameBoy.Frame>
+      <GameBoy.Screen
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endGesture}
         onPointerCancel={endGesture}
       >
-        <div aria-hidden className="size-2 rounded-full bg-gbc-led" />
-        <div className="overflow-hidden rounded-md bg-gbc-screen p-1">{screen}</div>
-      </div>
-      <span className="block text-center text-xs font-medium tracking-widest text-gbc-bezel">
-        GAME BOY COLOR
-      </span>
+        {screen}
+      </GameBoy.Screen>
       <div className="flex items-start justify-between pt-2">
-        <div className="grid grid-cols-3 gap-1">
-          <div className="size-11" />
-          <TapButton label="Up" className={directionButton} onPress={() => onRotate("cw")}>
-            <ChevronUp aria-hidden className="size-4" />
-          </TapButton>
-          <div className="size-11" />
-          <HoldButton label="Left" dir="left" onHoldStart={onHoldStart} onHoldEnd={onHoldEnd}>
-            <ChevronLeft aria-hidden className="size-4" />
-          </HoldButton>
-          <div aria-hidden className="size-11 rounded-md bg-gbc-button" />
-          <HoldButton label="Right" dir="right" onHoldStart={onHoldStart} onHoldEnd={onHoldEnd}>
-            <ChevronRight aria-hidden className="size-4" />
-          </HoldButton>
-          <div className="size-11" />
-          <HoldButton label="Down" dir="down" onHoldStart={onHoldStart} onHoldEnd={onHoldEnd}>
-            <ChevronDown aria-hidden className="size-4" />
-          </HoldButton>
-          <div className="size-11" />
-        </div>
-        <div className="flex items-end gap-3">
-          <div className="mb-4">
+        <GameBoy.DPad
+          up={
+            <TapButton label="Up" className={directionButton} onPress={() => onRotate("cw")}>
+              <ChevronUp aria-hidden className="size-4" />
+            </TapButton>
+          }
+          left={
+            <HoldButton label="Left" dir="left" onHoldStart={onHoldStart} onHoldEnd={onHoldEnd}>
+              <ChevronLeft aria-hidden className="size-4" />
+            </HoldButton>
+          }
+          right={
+            <HoldButton label="Right" dir="right" onHoldStart={onHoldStart} onHoldEnd={onHoldEnd}>
+              <ChevronRight aria-hidden className="size-4" />
+            </HoldButton>
+          }
+          down={
+            <HoldButton label="Down" dir="down" onHoldStart={onHoldStart} onHoldEnd={onHoldEnd}>
+              <ChevronDown aria-hidden className="size-4" />
+            </HoldButton>
+          }
+        />
+        <GameBoy.ActionButtons
+          a={
             <TapButton
               label="Rotate clockwise, A"
               className={roundButton}
@@ -241,17 +157,19 @@ export function Device({
             >
               A
             </TapButton>
-          </div>
-          <TapButton
-            label="Rotate counter-clockwise, B"
-            className={roundButton}
-            onPress={() => onRotate("ccw")}
-          >
-            B
-          </TapButton>
-        </div>
+          }
+          b={
+            <TapButton
+              label="Rotate counter-clockwise, B"
+              className={roundButton}
+              onPress={() => onRotate("ccw")}
+            >
+              B
+            </TapButton>
+          }
+        />
       </div>
-      <div className="flex justify-center gap-6 pt-2">
+      <GameBoy.Pills>
         <TapButton
           label="Preview, SELECT"
           className={pillButton}
@@ -263,15 +181,8 @@ export function Device({
         <TapButton label={`${primaryLabel}, START`} className={pillButton} onPress={onPrimary}>
           START
         </TapButton>
-      </div>
-      <div aria-hidden className="flex justify-end gap-1 pt-1">
-        <span className="h-1 w-6 rounded-full bg-gbc-shell-edge" />
-        <span className="h-1 w-6 rounded-full bg-gbc-shell-edge" />
-        <span className="h-1 w-6 rounded-full bg-gbc-shell-edge" />
-        <span className="h-1 w-6 rounded-full bg-gbc-shell-edge" />
-        <span className="h-1 w-6 rounded-full bg-gbc-shell-edge" />
-        <span className="h-1 w-6 rounded-full bg-gbc-shell-edge" />
-      </div>
-    </div>
+      </GameBoy.Pills>
+      <GameBoy.Speaker />
+    </GameBoy.Frame>
   )
 }

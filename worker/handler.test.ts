@@ -4,7 +4,9 @@ import { DatabaseSync } from "node:sqlite"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 
-import { MAX_BODY_BYTES } from "@/games/shared/leaderboard"
+import { createGame, IDLE, start, step } from "@/games/arkanoid/logic"
+import { maskFromInput } from "@/games/arkanoid/replay"
+import { MAX_BODY_BYTES, recordInput, type LogEntry } from "@/games/shared/leaderboard"
 
 import { handle } from "./index"
 
@@ -123,6 +125,41 @@ describe("scores api", () => {
     expect(body.scores).toHaveLength(10)
     expect(body.scores[0]).toMatchObject({ name: "ADA", score: 0 })
     expect(body.scores.filter((row) => row.score === -1)).toHaveLength(9)
+  })
+
+  it("saves a replayed arkanoid score", async () => {
+    const db = database()
+    let game = start(createGame(1))
+    const log: LogEntry[] = []
+    let mask = 0
+    let tick = 0
+    while (game.status !== "over" && tick < 20_000) {
+      const stuck = game.balls.some((ball) => ball.stuck)
+      const input = stuck || tick < 5 ? { ...IDLE, fire: true } : { ...IDLE, right: true }
+      const nextMask = maskFromInput(input)
+      if (nextMask !== mask) {
+        if (!recordInput("arkanoid", log, tick, nextMask)) break
+        mask = nextMask
+      }
+      game = step(game, input)
+      tick += 1
+    }
+    expect(game.status).toBe("over")
+
+    const created = await post(db, "/api/runs", {
+      game: "arkanoid",
+      level: 0,
+      name: "Ada",
+      seed: 1,
+      claimed: game.score,
+      log,
+    })
+    expect(created.status).toBe(202)
+    const { id } = (await created.json()) as { id: string }
+
+    const finished = await settle(db, id)
+    expect(finished.status).toBe(201)
+    expect(await finished.json()).toMatchObject({ status: "saved", score: game.score })
   })
 
   it("does not store a score that only ties the tenth", async () => {

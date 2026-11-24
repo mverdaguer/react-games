@@ -98,6 +98,17 @@ test("minesweeper with an opened square", async ({ page }) => {
   await shoot(page, "minesweeper-light")
 })
 
+test("arkanoid on the game boy", async ({ page }) => {
+  await prepare(page, "dark")
+  await page.goto("/games/arkanoid")
+  await page.getByRole("button", { name: "Start" }).click()
+  await page.getByRole("button", { name: "Fire, A" }).click()
+  await expect(page.getByRole("img", { name: /stuck no/ })).toBeVisible()
+  await page.getByRole("button", { name: "Pause" }).click()
+  await expect(page.getByRole("button", { name: "Resume" })).toBeVisible()
+  await shoot(page, "arkanoid-dark")
+})
+
 test("pang in the cabinet", async ({ page }) => {
   await prepare(page, "dark")
   await page.goto("/games/pang")

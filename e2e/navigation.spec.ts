@@ -9,6 +9,7 @@ test("home lists the games and opens Tic-Tac-Toe", async ({ page }) => {
   await expect(main.getByRole("link", { name: "Snake" })).toBeVisible()
   await expect(main.getByRole("link", { name: "Tetris" })).toBeVisible()
   await expect(main.getByRole("link", { name: "Pang" })).toBeVisible()
+  await expect(main.getByRole("link", { name: "Arkanoid" })).toBeVisible()
 
   await main.getByRole("link", { name: "Tic-Tac-Toe" }).click()
   await expect(page).toHaveURL(/\/games\/tic-tac-toe$/)
@@ -68,6 +69,13 @@ test("pang loads from its own address", async ({ page }) => {
   const main = page.getByRole("main")
   await expect(main.getByRole("heading", { level: 1, name: "Pang" })).toBeVisible()
   await expect(main.getByRole("img", { name: /Pang board/ })).toBeVisible()
+})
+
+test("arkanoid loads from its own address", async ({ page }) => {
+  await page.goto("/games/arkanoid")
+  const main = page.getByRole("main")
+  await expect(main.getByRole("heading", { level: 1, name: "Arkanoid" })).toBeVisible()
+  await expect(main.getByRole("img", { name: /Arkanoid board/ })).toBeVisible()
 })
 
 test("each page sets its own title", async ({ page }) => {

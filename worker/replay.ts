@@ -1,5 +1,6 @@
 import { GAME_RULES, type GameId } from "@/games/shared/leaderboard"
 import type { AdvanceResult, Checkpoint, LogEntry } from "@/games/shared/replay"
+import { advance as advanceArkanoid, begin as beginArkanoid } from "@/games/arkanoid/replay"
 import { advance as advancePang, begin as beginPang } from "@/games/pang/replay"
 import { advance as advanceSnake, begin as beginSnake } from "@/games/snake/replay"
 import { advance as advanceTetris, begin as beginTetris } from "@/games/tetris/replay"
@@ -13,6 +14,7 @@ const REPLAYS: Record<GameId, RunReplay> = {
   snake: { begin: beginSnake, advance: advanceSnake },
   tetris: { begin: beginTetris, advance: advanceTetris },
   pang: { begin: beginPang, advance: advancePang },
+  arkanoid: { begin: beginArkanoid, advance: advanceArkanoid },
 }
 
 export function replayChunk(
