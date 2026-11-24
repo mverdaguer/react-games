@@ -109,12 +109,11 @@ export function Leaderboard({ game, run }: { game: GameId; run: RecordedRun | nu
       {ask && run && !dismissed ? (
         <Dialog
           open
-          modal={!checking}
           onOpenChange={(next) => {
             if (!next && !checking) setDismissedKey(runKey)
           }}
         >
-          <DialogContent overlayClassName={checking ? "pointer-events-none" : undefined}>
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Save your score</DialogTitle>
               <DialogDescription>{run.score} points.</DialogDescription>

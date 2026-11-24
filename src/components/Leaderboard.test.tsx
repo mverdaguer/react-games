@@ -181,23 +181,18 @@ test("lets a newer run be submitted while an earlier check is still running", as
     return json({ scores: [] })
   })
 
+  let nextRun = () => {}
   function Board() {
     const [current, setCurrent] = useState(run)
-    return (
-      <>
-        <button type="button" onClick={() => setCurrent({ ...run, seed: 2, score: 30 })}>
-          Next run
-        </button>
-        <Leaderboard game="snake" run={current} />
-      </>
-    )
+    nextRun = () => setCurrent({ ...run, seed: 2, score: 30 })
+    return <Leaderboard game="snake" run={current} />
   }
 
   const screen = await render(<Board />)
   await userEvent.fill(screen.getByRole("textbox", { name: "Initials" }), "Ada")
   await screen.getByRole("button", { name: "Submit" }).click()
   await expect.element(screen.getByRole("button", { name: "Checking score…" })).toBeVisible()
-  await screen.getByRole("button", { name: "Next run" }).click()
+  nextRun()
   await expect.element(screen.getByRole("button", { name: "Submit" })).toBeEnabled()
   release?.(json({ status: "not-placed" }))
 })
