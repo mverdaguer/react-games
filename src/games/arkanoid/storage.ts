@@ -1,11 +1,14 @@
+import type { Difficulty } from "@/games/arkanoid/logic"
 import { readRecord, writeRecord } from "@/games/shared/storage"
 
 export type Settings = {
   sound: boolean
+  difficulty: Difficulty
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   sound: false,
+  difficulty: "easy",
 }
 
 export type Best = {
@@ -46,11 +49,16 @@ export function saveBest(score: number, level: number): Best {
   return next
 }
 
+function readDifficulty(value: unknown): Difficulty {
+  return value === "hard" ? "hard" : "easy"
+}
+
 function readSettings(): Settings {
   const record = readRecord(SETTINGS_KEY)
   if (!record) return { ...DEFAULT_SETTINGS }
   return {
     sound: typeof record.sound === "boolean" ? record.sound : DEFAULT_SETTINGS.sound,
+    difficulty: readDifficulty(record.difficulty),
   }
 }
 

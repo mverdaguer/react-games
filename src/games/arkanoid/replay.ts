@@ -1,6 +1,6 @@
 import { GAME_RULES } from "@/games/shared/leaderboard"
 import type { AdvanceResult, Checkpoint, LogEntry } from "@/games/shared/replay"
-import { createGame, start, step, type Game, type Input } from "@/games/arkanoid/logic"
+import { createGame, start, step, type Difficulty, type Game, type Input } from "@/games/arkanoid/logic"
 
 const MAX_TICKS = GAME_RULES.arkanoid.maxTicks
 
@@ -18,8 +18,16 @@ export function inputFromMask(mask: number): Input {
   }
 }
 
-export function begin(_level: number, seed: number): Checkpoint<Game> {
-  return { game: start(createGame(seed)), tick: 0, cursor: 0 }
+function difficultyFromLevel(level: number): Difficulty {
+  return level === 1 ? "hard" : "easy"
+}
+
+export function storedLevel(game: Game): number {
+  return game.difficulty === "easy" ? 1000 + game.level : game.level
+}
+
+export function begin(level: number, seed: number): Checkpoint<Game> {
+  return { game: start(createGame(seed, difficultyFromLevel(level))), tick: 0, cursor: 0 }
 }
 
 export function advance(
@@ -50,7 +58,7 @@ export function advance(
   }
   if (cursor < log.length) return { status: "rejected", reason: "extra input" }
   if (game.status === "over") {
-    return { status: "done", score: game.score, level: game.level }
+    return { status: "done", score: game.score, level: storedLevel(game) }
   }
   return { status: "rejected", reason: "unfinished" }
 }

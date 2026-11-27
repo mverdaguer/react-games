@@ -63,7 +63,7 @@ export const GAME_RULES: Record<GameId, GameRules> = {
     maxCode: 7,
     maxPerTick: 1,
     strictTicks: true,
-    levels: null,
+    levels: [0, 1],
   },
 }
 
@@ -183,6 +183,9 @@ export function qualifies(score: number, scores: readonly { score: number }[]): 
 
 export function levelLabel(game: GameId, level: number): string {
   if (game === "pang") return `Stage ${level}`
-  if (game === "arkanoid") return `Round ${level}`
+  if (game === "arkanoid") {
+    if (level > 1000) return `Easy · Round ${level - 1000}`
+    return `Hard · Round ${level}`
+  }
   return `Level ${level}`
 }

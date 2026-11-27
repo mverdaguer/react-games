@@ -51,10 +51,33 @@ test("sound", async () => {
   const sound = screen.getByRole("button", { name: "Sound" })
 
   await sound.click()
-  expect(JSON.parse(localStorage.getItem("arkanoid:settings:v1") ?? "null")).toEqual({ sound: true })
+  expect(JSON.parse(localStorage.getItem("arkanoid:settings:v1") ?? "null")).toEqual({
+    sound: true,
+    difficulty: "easy",
+  })
   await expect.element(sound).toHaveAttribute("aria-pressed", "true")
 
   await sound.click()
-  expect(JSON.parse(localStorage.getItem("arkanoid:settings:v1") ?? "null")).toEqual({ sound: false })
+  expect(JSON.parse(localStorage.getItem("arkanoid:settings:v1") ?? "null")).toEqual({
+    sound: false,
+    difficulty: "easy",
+  })
   await expect.element(sound).toHaveAttribute("aria-pressed", "false")
+})
+
+test("difficulty", async () => {
+  const screen = await render(<Arkanoid />)
+  const easy = screen.getByRole("button", { name: "Easy" })
+  const hard = screen.getByRole("button", { name: "Hard" })
+
+  await expect.element(easy).toHaveAttribute("aria-pressed", "true")
+  await expect.element(hard).toHaveAttribute("aria-pressed", "false")
+
+  await hard.click()
+  expect(JSON.parse(localStorage.getItem("arkanoid:settings:v1") ?? "null")).toEqual({
+    sound: false,
+    difficulty: "hard",
+  })
+  await expect.element(hard).toHaveAttribute("aria-pressed", "true")
+  await expect.element(screen.getByText("Arrows or A and D move, Space launches the ball. Press Enter or Start.")).toBeVisible()
 })

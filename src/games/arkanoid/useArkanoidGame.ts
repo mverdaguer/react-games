@@ -8,6 +8,7 @@ import {
   start,
   step,
   SUB,
+  type Difficulty,
   type Game,
   type Input,
 } from "@/games/arkanoid/logic"
@@ -36,6 +37,7 @@ function newSeed() {
 
 type RunLog = {
   seed: number
+  difficulty: Difficulty
   log: LogEntry[]
   ticks: number
   mask: number
@@ -126,9 +128,16 @@ export function useArkanoidGame() {
   const [best, setBest] = useState<Best | null>(loadBest)
   const [newBest, setNewBest] = useState(false)
   const [seed] = useState(newSeed)
-  const runRef = useRef<RunLog>({ seed, log: [], ticks: 0, mask: 0, limited: false })
+  const runRef = useRef<RunLog>({
+    seed,
+    difficulty: settings.difficulty,
+    log: [],
+    ticks: 0,
+    mask: 0,
+    limited: false,
+  })
   const [run, setRun] = useState<RecordedRun | null>(null)
-  const [game, setGame] = useState(() => createGame(seed))
+  const [game, setGame] = useState(() => createGame(seed, settings.difficulty))
   const gameRef = useRef(game)
   const settingsRef = useRef(settings)
   const bestRef = useRef(best)
@@ -139,10 +148,10 @@ export function useArkanoidGame() {
   const aimRef = useRef<number | null>(null)
   const clockRef = useRef({ last: 0, acc: 0 })
 
-  function startRun() {
+  function startRun(difficulty: Difficulty) {
     const seed = newSeed()
-    runRef.current = { seed, log: [], ticks: 0, mask: 0, limited: false }
-    return createGame(seed)
+    runRef.current = { seed, difficulty, log: [], ticks: 0, mask: 0, limited: false }
+    return createGame(seed, difficulty)
   }
 
   function releaseInput() {
@@ -175,7 +184,7 @@ export function useArkanoidGame() {
       const recorded = runRef.current
       setRun({
         game: "arkanoid",
-        level: next.level,
+        level: recorded.difficulty === "hard" ? 1 : 0,
         seed: recorded.seed,
         score: next.score,
         log: recorded.log.slice(),
@@ -221,8 +230,20 @@ export function useArkanoidGame() {
       setNewBest(false)
       releaseInput()
       setRun(null)
-      commit(start(startRun()))
+      commit(start(startRun(settingsRef.current.difficulty)))
     }
+  }
+
+  function setDifficulty(difficulty: Difficulty) {
+    if (difficulty === settingsRef.current.difficulty) return
+    const next = { ...settingsRef.current, difficulty }
+    saveSettings(next)
+    settingsRef.current = next
+    setSettings(next)
+    setNewBest(false)
+    releaseInput()
+    setRun(null)
+    commit(startRun(difficulty))
   }
 
   function toggleSound() {
@@ -399,5 +420,6 @@ export function useArkanoidGame() {
     setAim,
     tapFire,
     toggleSound,
+    setDifficulty,
   }
 }

@@ -159,7 +159,11 @@ describe("scores api", () => {
 
     const finished = await settle(db, id)
     expect(finished.status).toBe(201)
-    expect(await finished.json()).toMatchObject({ status: "saved", score: game.score })
+    expect(await finished.json()).toMatchObject({
+      status: "saved",
+      score: game.score,
+      level: 1000 + game.level,
+    })
   })
 
   it("does not store a score that only ties the tenth", async () => {

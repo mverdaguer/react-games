@@ -17,6 +17,7 @@ import {
   PADDLE_Y,
   START_LIVES,
   SUB,
+  DIFFICULTY_PROFILES,
   createGame,
   pause,
   start,
@@ -71,6 +72,8 @@ describe("arkanoid rules", () => {
   it("opens a ready round and deals the same table from the same seed", () => {
     const game = createGame(7)
     expect(game.status).toBe("ready")
+    expect(game.difficulty).toBe("easy")
+    expect(game.speed).toBe(DIFFICULTY_PROFILES.easy.baseSpeed)
     expect(game.level).toBe(1)
     expect(game.lives).toBe(START_LIVES)
     expect(game.balls).toHaveLength(1)
@@ -149,6 +152,27 @@ describe("arkanoid rules", () => {
     expect(right.balls[0]?.vx).toBeGreaterThan(0)
     expect(left.balls[0]?.vy).toBeLessThan(0)
     expect(right.balls[0]?.vy).toBeLessThan(0)
+  })
+
+  it("starts hard at the faster speed and pays twice", () => {
+    const hard = createGame(7, "hard")
+    expect(hard.difficulty).toBe("hard")
+    expect(hard.speed).toBe(DIFFICULTY_PROFILES.hard.baseSpeed)
+    expect(hard.speed).toBeGreaterThan(DIFFICULTY_PROFILES.easy.baseSpeed)
+
+    const broken = step(
+      {
+        ...start(hard),
+        bricks: [
+          { col: 6, row: 0, kind: "color", color: 0, hits: 1 },
+          { col: 0, row: 5, kind: "color", color: 1, hits: 1 },
+        ],
+        balls: [shotAt(6, 0)],
+      },
+      IDLE,
+    )
+    expect(broken.score).toBe(100)
+    expect(broken.speed).toBe(DIFFICULTY_PROFILES.hard.baseSpeed + DIFFICULTY_PROFILES.hard.speedStep)
   })
 
   it("scores a color brick when it breaks", () => {
@@ -309,6 +333,30 @@ describe("arkanoid rules", () => {
     )
     expect(game.bricks).toHaveLength(0)
     expect(game.capsule).toBeNull()
+  })
+
+  it("drops a capsule from one brick in four", () => {
+    const breaks = 280
+    let game = playing(1)
+    let drops = 0
+    for (let index = 0; index < breaks; index += 1) {
+      game = step(
+        {
+          ...game,
+          disruption: false,
+          capsule: null,
+          bricks: [
+            { col: 6, row: 0, kind: "color", color: 0, hits: 1 },
+            { col: 0, row: 5, kind: "color", color: 1, hits: 1 },
+          ],
+          balls: [shotAt(6, 0)],
+        },
+        IDLE,
+      )
+      if (game.capsule) drops += 1
+    }
+    expect(drops).toBeGreaterThan(breaks / 5)
+    expect(drops).toBeLessThan(breaks / 3)
   })
 
   it("adds a life when the score crosses 20000", () => {

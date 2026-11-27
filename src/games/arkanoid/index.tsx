@@ -4,7 +4,7 @@ import { GameShell } from "@/components/GameShell"
 import { Leaderboard } from "@/components/Leaderboard"
 import { Button } from "@/components/ui/button"
 import { Device } from "@/games/arkanoid/Device"
-import type { Status } from "@/games/arkanoid/logic"
+import type { Difficulty, Status } from "@/games/arkanoid/logic"
 import { Screen } from "@/games/arkanoid/Screen"
 import { useArkanoidGame } from "@/games/arkanoid/useArkanoidGame"
 
@@ -41,14 +41,43 @@ function statusText(status: Status, score: number, level: number, isNewBest: boo
   }
 }
 
+const difficulties: { id: Difficulty; label: string }[] = [
+  { id: "easy", label: "Easy" },
+  { id: "hard", label: "Hard" },
+]
+
 export default function Arkanoid() {
-  const { game, settings, best, newBest, run, holdMove, holdFire, primary, setAim, tapFire, toggleSound } =
-    useArkanoidGame()
+  const {
+    game,
+    settings,
+    best,
+    newBest,
+    run,
+    holdMove,
+    holdFire,
+    primary,
+    setAim,
+    tapFire,
+    toggleSound,
+    setDifficulty,
+  } = useArkanoidGame()
 
   return (
     <GameShell
       toolbar={
         <>
+          {difficulties.map((item) => (
+            <Button
+              key={item.id}
+              type="button"
+              variant={settings.difficulty === item.id ? "default" : "outline"}
+              size="sm"
+              aria-pressed={settings.difficulty === item.id}
+              onClick={() => setDifficulty(item.id)}
+            >
+              {item.label}
+            </Button>
+          ))}
           <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium tabular-nums">
             {best === null ? "Best —" : `Best ${best.score}`}
           </span>

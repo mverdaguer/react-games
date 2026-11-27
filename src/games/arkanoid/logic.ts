@@ -28,10 +28,6 @@ const LASER_SPEED = 4 * SUB
 const LASER_CAP = 2
 const CAPSULE_W = 8
 const CAPSULE_H = 4
-const BASE_SPEED = 560
-const MAX_SPEED = 920
-const SLOW_SPEED = 410
-const SPEED_STEP = 16
 const LIFE_SCORE = 20_000
 const LIFE_GAP = 60_000
 const GATE_SCORE = 10_000
@@ -49,9 +45,38 @@ const ZONES: readonly (readonly [number, number])[] = [
 ]
 
 const CAPSULE_KINDS = ["slow", "catch", "expand", "disruption", "laser", "break", "player"] as const
+const CAPSULE_EVERY = 4
 
 export type CapsuleKind = (typeof CAPSULE_KINDS)[number]
 export type Status = "ready" | "playing" | "paused" | "dying" | "cleared" | "over"
+
+export const DIFFICULTIES = ["easy", "hard"] as const
+export type Difficulty = (typeof DIFFICULTIES)[number]
+
+export type SpeedProfile = {
+  baseSpeed: number
+  maxSpeed: number
+  slowSpeed: number
+  speedStep: number
+  scoreMultiplier: number
+}
+
+export const DIFFICULTY_PROFILES = {
+  easy: { baseSpeed: 360, maxSpeed: 680, slowSpeed: 280, speedStep: 12, scoreMultiplier: 1 },
+  hard: { baseSpeed: 560, maxSpeed: 920, slowSpeed: 410, speedStep: 16, scoreMultiplier: 2 },
+} as const satisfies Record<Difficulty, SpeedProfile>
+
+function profile(difficulty: Difficulty): SpeedProfile {
+  return DIFFICULTY_PROFILES[difficulty]
+}
+
+function points(difficulty: Difficulty, amount: number): number {
+  return amount * profile(difficulty).scoreMultiplier
+}
+
+function travelSpeed(difficulty: Difficulty, speed: number, slow: boolean): number {
+  return slow ? profile(difficulty).slowSpeed : speed
+}
 
 export type Ball = {
   id: number
@@ -76,6 +101,7 @@ export type Laser = {
 
 export type Game = {
   status: Status
+  difficulty: Difficulty
   level: number
   score: number
   lives: number
@@ -112,6 +138,7 @@ type Draft = {
   gate: boolean
   disruption: boolean
   level: number
+  difficulty: Difficulty
 }
 
 function isqrt(n: number): number {
@@ -274,10 +301,9 @@ function grantLives(before: number, after: number, lives: number): number {
 
 function spawnCapsule(draft: Draft, brick: Brick): void {
   if (draft.capsule || draft.disruption || draft.cleared) return
-  const [roll, seed] = randomInt(draft.seed, 8)
+  const [roll, seed] = randomInt(draft.seed, CAPSULE_KINDS.length * CAPSULE_EVERY)
   draft.seed = seed
-  if (roll === 0) return
-  const kind = CAPSULE_KINDS[roll - 1]
+  const kind = CAPSULE_KINDS[roll]
   if (!kind) return
   draft.capsule = {
     kind,
@@ -302,13 +328,17 @@ function hitBrick(draft: Draft, brick: Brick, fromBall: boolean, seen: Set<strin
     } else {
       draft.bricks = draft.bricks.filter((_, item) => item !== index)
       const colorPoints = COLOR_SCORE[target.color]
-      draft.score += target.kind === "silver" ? 50 * draft.level : colorPoints
+      draft.score += points(
+        draft.difficulty,
+        target.kind === "silver" ? 50 * draft.level : colorPoints,
+      )
       if (roundClear(draft.bricks)) draft.cleared = true
       else spawnCapsule(draft, target)
     }
   }
   if (fromBall) {
-    draft.speed = Math.min(MAX_SPEED, draft.speed + SPEED_STEP)
+    const { maxSpeed, speedStep } = profile(draft.difficulty)
+    draft.speed = Math.min(maxSpeed, draft.speed + speedStep)
     draft.slow = false
   }
 }
@@ -356,7 +386,7 @@ function moveBall(
         continue
       }
       if (draft.gate && next >= GATE_X * SUB) {
-        draft.score += GATE_SCORE
+        draft.score += points(draft.difficulty, GATE_SCORE)
         draft.cleared = true
         return null
       }
@@ -396,7 +426,7 @@ function moveBall(
         y = (PADDLE_Y - BALL_R) * SUB
         break
       }
-      const travel = draft.slow ? SLOW_SPEED : draft.speed
+      const travel = travelSpeed(draft.difficulty, draft.speed, draft.slow)
       const vel = velocityFromZone(zoneIndex(x - paddleX, wide), travel)
       vx = vel.vx
       vy = vel.vy
@@ -486,7 +516,7 @@ function clearMutex(game: Game, keep: "slow" | "catch" | "expand" | "laser"): Ga
     capsule: null,
   }
   if (keep === "slow") {
-    return { ...next, balls: next.balls.map((ball) => rescale(ball, SLOW_SPEED)) }
+    return { ...next, balls: next.balls.map((ball) => rescale(ball, profile(game.difficulty).slowSpeed)) }
   }
   if (game.slow) {
     return { ...next, balls: next.balls.map((ball) => rescale(ball, game.speed)) }
@@ -497,7 +527,7 @@ function clearMutex(game: Game, keep: "slow" | "catch" | "expand" | "laser"): Ga
 function disrupt(game: Game): Game {
   const ball = game.balls[0]
   if (!ball || game.balls.length !== 1) return { ...game, capsule: null }
-  const speed = game.slow ? SLOW_SPEED : game.speed
+  const speed = travelSpeed(game.difficulty, game.speed, game.slow)
   const origin = ball.stuck ? launchBall(ball, game.paddleX, game.wide, speed) : ball
   const left = velocityFromZone(0, speed)
   const right = velocityFromZone(7, speed)
@@ -549,7 +579,7 @@ function openRound(game: Game): Game {
     timer: 0,
     fireWasDown: false,
     nextId: 2,
-    speed: BASE_SPEED,
+    speed: profile(game.difficulty).baseSpeed,
   }
 }
 
@@ -582,11 +612,12 @@ function advanceBeat(game: Game): Game {
   return respawn({ ...game, lives })
 }
 
-export function createGame(seed: number): Game {
+export function createGame(seed: number, difficulty: Difficulty = "easy"): Game {
   const baseSeed = seed | 0
   const paddleX = centeredPaddle(false)
   return {
     status: "ready",
+    difficulty,
     level: 1,
     score: 0,
     lives: START_LIVES,
@@ -606,7 +637,7 @@ export function createGame(seed: number): Game {
     seed: baseSeed,
     baseSeed,
     nextId: 2,
-    speed: BASE_SPEED,
+    speed: profile(difficulty).baseSpeed,
   }
 }
 
@@ -630,7 +661,7 @@ function play(game: Game, input: Input): Game {
 
   let balls = game.balls.map((ball) => (ball.stuck ? placeStuck(ball, paddleX, wideNow) : ball))
   const fireRise = input.fire && !game.fireWasDown
-  const travel = game.slow ? SLOW_SPEED : game.speed
+  const travel = travelSpeed(game.difficulty, game.speed, game.slow)
   if (fireRise) {
     balls = balls.map((ball) => (ball.stuck ? launchBall(ball, paddleX, wideNow, travel) : ball))
   }
@@ -646,6 +677,7 @@ function play(game: Game, input: Input): Game {
     gate: game.gate,
     disruption: game.disruption,
     level: game.level,
+    difficulty: game.difficulty,
   }
 
   let lasers = fireRise && game.laser ? spawnLasers(game.lasers, paddleX, wideNow) : game.lasers
@@ -678,7 +710,7 @@ function play(game: Game, input: Input): Game {
   }
   balls = kept
   if (draft.speed !== speedBefore || draft.slow !== slowBefore) {
-    const nextSpeed = draft.slow ? SLOW_SPEED : draft.speed
+    const nextSpeed = travelSpeed(draft.difficulty, draft.speed, draft.slow)
     balls = balls.map((ball) => rescale(ball, nextSpeed))
   }
 

@@ -69,7 +69,11 @@ describe("arkanoid storage", () => {
     storage.setItem(BEST_KEY, JSON.stringify({ score: "4", level: 2 }))
     expect(loadBest()).toBeNull()
     storage.setItem(SETTINGS_KEY, JSON.stringify({ sound: "yes" }))
-    expect(loadSettings()).toEqual({ sound: false })
+    expect(loadSettings()).toEqual({ sound: false, difficulty: "easy" })
+    storage.setItem(SETTINGS_KEY, JSON.stringify({ sound: true, difficulty: "hard" }))
+    expect(loadSettings()).toEqual({ sound: true, difficulty: "hard" })
+    storage.setItem(SETTINGS_KEY, JSON.stringify({ sound: false, difficulty: "medium" }))
+    expect(loadSettings()).toEqual({ sound: false, difficulty: "easy" })
   })
 
   it("keeps the higher score and the further level", () => {
@@ -84,9 +88,9 @@ describe("arkanoid storage", () => {
   })
 
   it("round-trips settings", () => {
-    expect(saveSettings({ sound: true })).toEqual({ sound: true })
-    expect(loadSettings()).toEqual({ sound: true })
-    expect(storage.getItem(SETTINGS_KEY)).toBe(JSON.stringify({ sound: true }))
+    expect(saveSettings({ sound: true, difficulty: "hard" })).toEqual({ sound: true, difficulty: "hard" })
+    expect(loadSettings()).toEqual({ sound: true, difficulty: "hard" })
+    expect(storage.getItem(SETTINGS_KEY)).toBe(JSON.stringify({ sound: true, difficulty: "hard" }))
   })
 
   it("returns the new values when storage throws", () => {
@@ -95,7 +99,7 @@ describe("arkanoid storage", () => {
     }
     expect(saveBest(8, 1)).toEqual({ score: 8, level: 1 })
     expect(loadBest()).toBeNull()
-    expect(saveSettings({ sound: true })).toEqual({ sound: true })
+    expect(saveSettings({ sound: true, difficulty: "easy" })).toEqual({ sound: true, difficulty: "easy" })
     expect(loadSettings()).toEqual(DEFAULT_SETTINGS)
   })
 
